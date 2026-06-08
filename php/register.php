@@ -30,7 +30,7 @@
           // Jika Username blm ada baru INSERT dilakuin
           try {
               $sql = "INSERT INTO tuser (nama, gender, username, password, tRoles_id) 
-                      VALUES (:nama, :gender, :username, :password, :role)";
+                      VALUES (:nama, :gender, :username, sha1(:password), :role)";
               $stmt_insert = $koneksi->prepare($sql);
               
               // Eksekusi data

@@ -1,7 +1,8 @@
 <?php
   require_once 'koneksi.php';
 
-  $msg = ''; // untuk variabel 
+  $msg_error = ''; // untuk pesan error
+  $msg = ''; // untuk pesan umum
 
   try {
       $koneksi = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
@@ -16,25 +17,22 @@
       $pass_word = $_POST['password'];
 
       try {
-          // 1. Ambil data dari database berdasarkan username (Gunakan Prepared Statement agar aman)
-          $sql = "SELECT * FROM tuser WHERE username = :username";
+          $sql = "SELECT * FROM tuser WHERE username = :username and password = sha1(:password)";
           $stmt = $koneksi->prepare($sql);
-          $stmt->execute(['username' => $user_name]);
+          $stmt->execute([
+            'username' => $user_name,
+            'password' => $pass_word
+            ]);
           
           $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-          // Cek Apakah Username ada di Database atau tidak
+          // Cek Apakah Username dan Password ada di Database atau tidak
           if ($user) {
-              // Cek Apakah Password sesuai dengan Username sebelumnya di Database atau tidak
-              if ($pass_word === $user['password']) {
-                  header("Location: gudang/dashboard.php");
-                  exit;
-              } 
-              else {
-                  $msg = "Password yang Anda masukkan salah!";
-              }
-          } else {
-              $msg = "Username tidak terdaftar!";
+            header("Location: gudang/dashboard.php");
+            exit;
+          } 
+          else {
+            $msg_error = "Username & Password Anda Salah";
           }
       }
       catch (PDOException $e){
@@ -74,31 +72,34 @@
           <p class="text-muted mb-0">Sign in to your CharaDrink Account.</p>
         </div>
 
-        <?php if (!empty($error_msg)): ?>
+        <?php if (!empty($msg_error)): ?>
           <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-octagon-fill me-2"></i> <?php echo $error_msg; ?>
+            <i class="bi bi-exclamation-octagon-fill me-2"></i> <?php echo $msg_error; ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
         <?php endif; ?>
 
+        <?php if (!empty($msg) && empty($msg_error)): ?>
+          <div class="alert alert-warning" role="alert">
+             <?php echo $msg; ?>
+          </div>
+        <?php endif; ?>
+
+        <!-- USERNAME -->
         <div class="mb-3">
           <label class="form-label" for="loginUsername">Username</label>
-          <input class="form-control <?php echo !empty($error_msg) ? 'is-invalid' : ''; ?>" id="loginUsername" type="text" required name="username" value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>">
+          <input class="form-control" id="loginUsername" type="text" required name="username">
           <div class="invalid-feedback">Enter a valid Username.</div>
         </div>
 
+        <!-- PASSWORD -->
         <div class="mb-3">
           <div class="d-flex justify-content-between">
             <label class="form-label" for="loginPassword">Password</label>
             <a class="small fw-semibold" href="forgot-password.php">Forgot?</a>
           </div>
-          <input class="form-control <?php echo !empty($error_msg) ? 'is-invalid' : ''; ?>" id="loginPassword" type="password" minlength="6" required name="password">
+          <input class="form-control <?php echo !empty($msg_error) ? 'is-invalid' : ''; ?>" id="loginPassword" type="password" minlength="6" required name="password">
           <div class="invalid-feedback">Password must be at least 6 characters.</div>
-        </div>
-
-        <div class="form-check mb-4">
-          <input class="form-check-input" type="checkbox" id="rememberMe">
-          <label class="form-check-label" for="rememberMe">Remember me</label>
         </div>
         
         <button class="btn btn-primary w-100" type="submit" name="login">

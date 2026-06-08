@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="adminHMD professional admin dashboard template">
-  <title>Profile | adminHMD</title>
+  <title>Profile | CharaDrink</title>
 
-  <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/vendors/bootstrap-icons/bootstrap-icons.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../../../project/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../../project/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+  <link rel="stylesheet" href="../../../project/assets/css/style.css">
 </head>
 
 <body>
@@ -17,61 +17,61 @@
 
     <aside class="admin-sidebar" id="adminSidebar" aria-label="Main navigation">
       <div class="sidebar-header">
-        <a class="brand-mark" href="index.html" aria-label="adminHMD dashboard">
+        <a class="brand-mark" href="dashboard.php" aria-label="adminHMD dashboard">
           <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
           <span class="brand-copy">
-            <span class="brand-title">adminHMD</span>
-            <span class="brand-subtitle">Admin Template</span>
+            <span class="brand-title">CharaDrink</span>
+            <span class="brand-subtitle">Bagian Gudang</span>
           </span>
         </a>
       </div>
 
       <nav class="sidebar-nav">
-        <a class="nav-link" href="index.html">
+        <a class="nav-link" href="dashboard.php">
           <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
           <span class="nav-text">Dashboard</span>
         </a>
-        <a class="nav-link" href="users.html">
+        <a class="nav-link" href="users.php">
           <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
           <span class="nav-text">Users</span>
         </a>
-        <a class="nav-link" href="add-user.html">
+        <a class="nav-link" href="add-user.php">
           <span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
           <span class="nav-text">Add User</span>
         </a>
-        <a class="nav-link active" href="profile.html" aria-current="page">
+        <a class="nav-link active" href="profile.php" aria-current="page">
           <span class="nav-icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
           <span class="nav-text">Profile</span>
         </a>
-        <a class="nav-link" href="charts.html">
+        <a class="nav-link" href="charts.php">
           <span class="nav-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
           <span class="nav-text">Charts</span>
         </a>
-        <a class="nav-link" href="tables.html">
+        <a class="nav-link" href="tables.php">
           <span class="nav-icon"><i class="bi bi-table" aria-hidden="true"></i></span>
           <span class="nav-text">Tables</span>
         </a>
-        <a class="nav-link" href="forms.html">
+        <a class="nav-link" href="forms.php">
           <span class="nav-icon"><i class="bi bi-ui-checks-grid" aria-hidden="true"></i></span>
           <span class="nav-text">Forms</span>
         </a>
-        <a class="nav-link" href="components.html">
+        <a class="nav-link" href="components.php">
           <span class="nav-icon"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i></span>
           <span class="nav-text">Components</span>
         </a>
-        <a class="nav-link" href="alerts.html">
+        <a class="nav-link" href="alerts.php">
           <span class="nav-icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span>
           <span class="nav-text">Alerts</span>
         </a>
-        <a class="nav-link" href="modals.html">
+        <a class="nav-link" href="modals.php">
           <span class="nav-icon"><i class="bi bi-window-stack" aria-hidden="true"></i></span>
           <span class="nav-text">Modals</span>
         </a>
-        <a class="nav-link" href="settings.html">
+        <a class="nav-link" href="settings.php">
           <span class="nav-icon"><i class="bi bi-gear" aria-hidden="true"></i></span>
           <span class="nav-text">Settings</span>
         </a>
-        <a class="nav-link" href="blank.html">
+        <a class="nav-link" href="blank.php">
           <span class="nav-icon"><i class="bi bi-file-earmark" aria-hidden="true"></i></span>
           <span class="nav-text">Blank Page</span>
         </a>
@@ -113,15 +113,15 @@
               </button>
               <div class="dropdown-menu dropdown-menu-end notification-menu">
                 <div class="dropdown-header fw-bold text-body">Notifications</div>
-                <a class="dropdown-item" href="users.html">
+                <a class="dropdown-item" href="users.php">
                   <span class="notification-title">New user registered</span>
                   <span class="notification-time">4 minutes ago</span>
                 </a>
-                <a class="dropdown-item" href="charts.html">
+                <a class="dropdown-item" href="charts.php">
                   <span class="notification-title">Revenue target reached</span>
                   <span class="notification-time">32 minutes ago</span>
                 </a>
-                <a class="dropdown-item" href="settings.html">
+                <a class="dropdown-item" href="settings.php">
                   <span class="notification-title">Security review completed</span>
                   <span class="notification-time">1 hour ago</span>
                 </a>
@@ -134,10 +134,10 @@
                 <span class="profile-name d-none d-sm-inline">Admin Hasan</span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="profile.html">Profile</a></li>
-                <li><a class="dropdown-item" href="settings.html">Account settings</a></li>
+                <li><a class="dropdown-item" href="profile.php">Profile</a></li>
+                <li><a class="dropdown-item" href="settings.php">Account settings</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="login.html">Sign out</a></li>
+                <li><a class="dropdown-item" href="login.php">Sign out</a></li>
               </ul>
             </div>
           </div>
@@ -190,7 +190,7 @@
     </div>
   </div>
 
-  <script src="../assets/js/bootstrap.bundle.min.js"></script>
-  <script src="../assets/js/main.js"></script>
+  <script src="../../../project/assets/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../project/assets/js/main.js"></script>
 </body>
 </html>

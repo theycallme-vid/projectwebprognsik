@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="adminHMD professional admin dashboard template">
-  <title>Add User | adminHMD</title>
+  <title>Add User | CharaDrink</title>
 
-  <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/vendors/bootstrap-icons/bootstrap-icons.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../../../project/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../../project/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+  <link rel="stylesheet" href="../../../project/assets/css/style.css">
 </head>
 
 <body>
@@ -17,7 +17,7 @@
 
     <aside class="admin-sidebar" id="adminSidebar" aria-label="Main navigation">
       <div class="sidebar-header">
-        <a class="brand-mark" href="index.php" aria-label="adminHMD dashboard">
+        <a class="brand-mark" href="Dashboard.php" aria-label="adminHMD dashboard">
           <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
           <span class="brand-copy">
             <span class="brand-title">adminHMD</span>
@@ -27,7 +27,7 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a class="nav-link" href="index.php">
+        <a class="nav-link" href="Dashboard.php">
           <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
           <span class="nav-text">Dashboard</span>
         </a>
@@ -198,7 +198,7 @@
     </div>
   </div>
 
-  <script src="../assets/js/bootstrap.bundle.min.js"></script>
-  <script src="../assets/js/main.js"></script>
+  <script src="../../../project/assets/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../project/assets/js/main.js"></script>
 </body>
 </html>

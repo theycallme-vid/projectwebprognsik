@@ -1,3 +1,6 @@
+<?php 
+  ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,28 +9,29 @@
   <meta name="description" content="adminHMD professional admin dashboard template">
   <title>Dashboard | adminHMD</title>
 
-  <link rel="stylesheet" href="../../../template/assets/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../../../template/assets/vendors/bootstrap-icons/bootstrap-icons.css">
-  <link rel="stylesheet" href="../../../template/assets/css/style.css">
+  <link rel="stylesheet" href="../../../project/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../../project/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+  <link rel="stylesheet" href="../../../project/assets/css/style.css">
 </head>
 
 <body>
   <div class="admin-shell">
     <div class="sidebar-backdrop" data-sidebar-close></div>
 
-    <aside class="admin-sidebar" id="adminSidebar" aria-label="Main navigation">
+    <aside class="admin-sidebar" id="adminSidebar" aria-label="Main navigation"> 
       <div class="sidebar-header">
         <a class="brand-mark" href="index.php" aria-label="adminHMD dashboard">
           <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
           <span class="brand-copy">
-            <span class="brand-title">adminHMD</span>
-            <span class="brand-subtitle">Admin Template</span>
+            <span class="brand-title">CharaDrink</span>
+            <span class="brand-subtitle">Bagian Gudang</span>
           </span>
         </a>
       </div>
 
+      <!-- BAGIAN SIDEBAR -->
       <nav class="sidebar-nav">
-        <a class="nav-link active" href="index.php" aria-current="page">
+        <a class="nav-link active" href="dashboard.php" aria-current="page">
           <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
           <span class="nav-text">Dashboard</span>
         </a>
@@ -129,14 +133,14 @@
 
             <div class="dropdown">
               <button class="profile-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <img class="avatar-img avatar-sm" src="../../../template/assets/images/avatar/avatar.jpg" alt="Admin Hasan">
+                <img class="avatar-img avatar-sm" src="../../../project/assets/images/avatar/avatar.jpg" alt="Admin Hasan">
                 <span class="profile-name d-none d-sm-inline">Admin Hasan</span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="profile.php">Profile</a></li>
                 <li><a class="dropdown-item" href="settings.php">Account settings</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="login.php">Sign out</a></li>
+                <li><a class="dropdown-item" href="../../php/login.php">Sign out</a></li>
               </ul>
             </div>
           </div>
@@ -270,7 +274,7 @@
                   <tr>
                     <td>
                       <div class="d-flex align-items-center gap-2">
-                        <img class="avatar-img avatar-sm" src="../../../template/assets/images/avatar/avatar-1.jpg" alt="Sarah Ahmed">
+                        <img class="avatar-img avatar-sm" src="../../../project/assets/images/avatar/avatar-1.jpg" alt="Sarah Ahmed">
                         <div>
                           <p class="fw-semibold mb-0">Sarah Ahmed</p>
                           <p class="text-muted small mb-0">sarah@example.com</p>
@@ -286,7 +290,7 @@
                   <tr>
                     <td>
                       <div class="d-flex align-items-center gap-2">
-                        <img class="avatar-img avatar-sm" src="../../../template/assets/images/avatar/avatar-2.jpg" alt="Rafi Khan">
+                        <img class="avatar-img avatar-sm" src="../../../project/assets/images/avatar/avatar-2.jpg" alt="Rafi Khan">
                         <div>
                           <p class="fw-semibold mb-0">Rafi Khan</p>
                           <p class="text-muted small mb-0">rafi@example.com</p>
@@ -302,7 +306,7 @@
                   <tr>
                     <td>
                       <div class="d-flex align-items-center gap-2">
-                        <img class="avatar-img avatar-sm" src="../../../template/assets/images/avatar/avatar-3.jpg" alt="Nadia Islam">
+                        <img class="avatar-img avatar-sm" src="../../../project/assets/images/avatar/avatar-3.jpg" alt="Nadia Islam">
                         <div>
                           <p class="fw-semibold mb-0">Nadia Islam</p>
                           <p class="text-muted small mb-0">nadia@example.com</p>
@@ -318,7 +322,7 @@
                   <tr>
                     <td>
                       <div class="d-flex align-items-center gap-2">
-                        <img class="avatar-img avatar-sm" src="../../../template/assets/images/avatar/avatar-4.jpg" alt="Mina Torres">
+                        <img class="avatar-img avatar-sm" src="../../../project/assets/images/avatar/avatar-4.jpg" alt="Mina Torres">
                         <div>
                           <p class="fw-semibold mb-0">Mina Torres</p>
                           <p class="text-muted small mb-0">mina@example.com</p>
@@ -334,7 +338,7 @@
                   <tr>
                     <td>
                       <div class="d-flex align-items-center gap-2">
-                        <img class="avatar-img avatar-sm" src="../../../template/assets/images/avatar/avatar-5.jpg" alt="Jon Oliver">
+                        <img class="avatar-img avatar-sm" src="../../../project/assets/images/avatar/avatar-5.jpg" alt="Jon Oliver">
                         <div>
                           <p class="fw-semibold mb-0">Jon Oliver</p>
                           <p class="text-muted small mb-0">jon@example.com</p>
@@ -363,7 +367,7 @@
     </div>
   </div>
 
-  <script src="../../../template/assets/js/bootstrap.bundle.min.js"></script>
-  <script src="../../../template/assets/js/main.js"></script>
+  <script src="../../../project/assets/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../project/assets/js/main.js"></script>
 </body>
 </html>

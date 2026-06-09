@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="adminHMD error page">
-  <title>404 Page Not Found | adminHMD</title>
+  <title>404 Page Not Found | CharaDrink</title>
 
-  <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/vendors/bootstrap-icons/bootstrap-icons.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../../../project/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../../project/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+  <link rel="stylesheet" href="../../../project/assets/css/style.css">
 </head>
 
 <body class="auth-body">
@@ -22,11 +22,11 @@
       <div class="error-code">404</div>
       <h1 class="h3 mb-2">Page Not Found</h1>
       <p class="text-muted mb-4">The page you are looking for does not exist or has been moved.</p>
-      <div class="d-flex flex-wrap justify-content-center gap-2"><a class="btn btn-primary" href="index.html"><i class="bi bi-speedometer2" aria-hidden="true"></i> Back to Dashboard</a><a class="btn btn-outline-secondary" href="login.html">Sign In</a></div>
+      <div class="d-flex flex-wrap justify-content-center gap-2"><a class="btn btn-primary" href="Dashboard.php"><i class="bi bi-speedometer2" aria-hidden="true"></i> Back to Dashboard</a><a class="btn btn-outline-secondary" href="login.html">Sign In</a></div>
     </section>
   </main>
 
-  <script src="../assets/js/bootstrap.bundle.min.js"></script>
-  <script src="../assets/js/main.js"></script>
+  <script src="../../../project/assets/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../project/assets/js/main.js"></script>
 </body>
 </html>

@@ -21,7 +21,7 @@
           <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
           <span class="brand-copy">
             <span class="brand-title">CharaDrink</span>
-            <span class="brand-subtitle">Bagian Gudang</span>
+            <span class="brand-subtitle">Admin</span>
           </span>
         </a>
       </div>
@@ -76,17 +76,6 @@
           <span class="nav-text">Blank Page</span>
         </a>
       </nav>
-
-      <div class="sidebar-user">
-        <img class="avatar-img avatar-md sidebar-user-avatar" src="../assets/images/avatar/avatar.jpg" alt="Admin Hasan">
-        <strong>Admin Hasan</strong>
-        <small>Active Workspace</small>
-      </div>
-
-      <div class="sidebar-footer">
-        <span class="status-dot"></span>
-        <span class="sidebar-footer-text">System running smoothly</span>
-      </div>
     </aside>
 
     <div class="admin-main">
@@ -170,14 +159,6 @@
           </section>
         </div>
       </main>
-
-      <footer class="admin-footer">
-        <div class="container-fluid px-3 px-lg-4">
-          <span>Copyright 2026 adminHMD. <br> Developed by <a target="_blank" class="fw-bold text-success" href="https://github.com/HasanMahmudDev">Md. Hasan Mahmud</a> • Distributed by <a target="_blank" class="fw-bold text-success" href="https://themewagon.com">ThemeWagon</a> </span>
-          <span>Professional dashboard template.</span>
-          <span>Form component examples.</span>
-        </div>
-      </footer>
     </div>
   </div>
 

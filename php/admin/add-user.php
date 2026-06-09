@@ -1,5 +1,22 @@
 <?php 
 require_once 'koneksiAdmin.php';
+session_start();
+
+// LOG OUT
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_unset();   // Mengosongkan semua variabel session
+    session_destroy(); // Menghancurkan session di server
+  
+    header("Location: ../login.php"); 
+    exit;
+}
+
+if (!isset($_SESSION['is_auth']) || $_SESSION['is_auth'] !== true) {
+    header("Location: ../login.php");
+    exit;
+}
+
+$nama = $_SESSION['nama'];
 
 $error_msg = '';
 $msg= '';
@@ -14,7 +31,7 @@ catch(PDOException $e) {
       $nama = $_POST['nama'];
       $gender = $_POST['gender'];
       $user_name = $_POST['username']; 
-      $pass_word = $_POST['password'];
+      $pass_word = '1234567890';
       $role = $_POST['role'];
       
   
@@ -75,7 +92,7 @@ catch(PDOException $e) {
           <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
           <span class="brand-copy">
             <span class="brand-title">CharaDrink</span>
-            <span class="brand-subtitle">Bagian Admin</span>
+            <span class="brand-subtitle">Admin</span>
           </span>
         </a>
       </div>
@@ -130,17 +147,6 @@ catch(PDOException $e) {
           <span class="nav-text">Blank Page</span>
         </a>
       </nav>
-
-      <div class="sidebar-user">
-        <img class="avatar-img avatar-md sidebar-user-avatar" src="../assets/images/avatar/avatar.jpg" alt="Admin Hasan">
-        <strong>Admin Hasan</strong>
-        <small>Active Workspace</small>
-      </div>
-
-      <div class="sidebar-footer">
-        <span class="status-dot"></span>
-        <span class="sidebar-footer-text">System running smoothly</span>
-      </div>
     </aside>
 
     <div class="admin-main">
@@ -184,14 +190,13 @@ catch(PDOException $e) {
 
             <div class="dropdown">
               <button class="profile-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <img class="avatar-img avatar-sm" src="../assets/images/avatar/avatar.jpg" alt="Admin Hasan">
-                <span class="profile-name d-none d-sm-inline">Admin Hasan</span>
+              <span class="profile-name d-none d-sm-inline"><?php echo $_SESSION['nama']; ?></span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="profile.php">Profile</a></li>
                 <li><a class="dropdown-item" href="settings.php">Account settings</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="login.php">Sign out</a></li>
+                <li><a class="dropdown-item" href="dashboard.php?action=logout">Sign out</a></li>
               </ul>
             </div>
           </div>
@@ -252,13 +257,6 @@ catch(PDOException $e) {
                       <input class="form-check-input" type="radio" name="gender" id="genderP" value="P" <?php echo (isset($_POST['gender']) && $_POST['gender'] == 'P') ? 'checked' : ''; ?> required>
                       <label class="form-check-label" for="genderP">Perempuan</label>
                     </div>
-                  </div>
-
-                  <!-- PASSWORD -->
-                  <div class="col-md-6">
-                    <label class="form-label" for="phone">Password</label>
-                    <input class="form-control" id="password" type="password" name="password" required>
-                    <div class="invalid-feedback">Password must be at least 6 characters.</div>
                   </div>
 
                   <!-- ROLES -->

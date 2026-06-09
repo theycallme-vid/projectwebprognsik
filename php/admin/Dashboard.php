@@ -1,10 +1,30 @@
+<?php
+session_start();
+
+// LOG OUT
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_unset();   // Mengosongkan semua variabel session
+    session_destroy(); // Menghancurkan session di server
+  
+    header("Location: ../login.php"); 
+    exit;
+}
+
+if (!isset($_SESSION['is_auth']) || $_SESSION['is_auth'] !== true) {
+    header("Location: ../login.php");
+    exit;
+}
+
+$nama = $_SESSION['nama'];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="adminHMD professional admin dashboard template">
-  <title>Dashboard | adminHMD</title>
+  <title>Dashboard | CharaDrink</title>
 
   <link rel="stylesheet" href="../../../project/assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="../../../project/assets/vendors/bootstrap-icons/bootstrap-icons.css">
@@ -21,7 +41,7 @@
           <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
           <span class="brand-copy">
             <span class="brand-title">CharaDrink</span>
-            <span class="brand-subtitle">Bagian Gudang</span>
+            <span class="brand-subtitle">Admin</span>
           </span>
         </a>
       </div>
@@ -77,16 +97,6 @@
           <span class="nav-text">Blank Page</span>
         </a>
       </nav>
-
-      <div class="sidebar-user">
-        <img class="avatar-img avatar-md sidebar-user-avatar" src="../../../template/assets/images/avatar/avatar.jpg" alt="Admin Hasan">
-        <strong>Admin Hasan</strong>
-        <small>Active Workspace</small>
-      </div>
-      <div class="sidebar-footer">
-        <span class="status-dot"></span>
-        <span class="sidebar-footer-text">System running smoothly</span>
-      </div>
     </aside>
 
     <div class="admin-main">
@@ -130,14 +140,13 @@
 
             <div class="dropdown">
               <button class="profile-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <img class="avatar-img avatar-sm" src="../../../project/assets/images/avatar/avatar.jpg" alt="Admin Hasan">
-                <span class="profile-name d-none d-sm-inline">Admin Hasan</span>
+              <span class="profile-name d-none d-sm-inline"><?php echo $_SESSION['nama']; ?></span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="profile.php">Profile</a></li>
                 <li><a class="dropdown-item" href="settings.php">Account settings</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="../../php/login.php">Sign out</a></li>
+                <li><a class="dropdown-item" href="dashboard.php?action=logout">Sign out</a></li>
               </ul>
             </div>
           </div>
@@ -354,13 +363,6 @@
           </section>
         </div>
       </main>
-
-      <footer class="admin-footer">
-        <div class="container-fluid px-3 px-lg-4">
-          <span>Copyright 2026 adminHMD. <br> Developed by <a target="_blank" class="fw-bold text-success" href="https://github.com/HasanMahmudDev">Md. Hasan Mahmud</a> • Distributed by <a target="_blank" class="fw-bold text-success" href="https://themewagon.com">ThemeWagon</a> </span>
-          <span>Professional dashboard template.</span>
-        </div>
-      </footer>
     </div>
   </div>
 

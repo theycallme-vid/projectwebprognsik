@@ -1,3 +1,57 @@
+<?php 
+require_once 'koneksiAdmin.php';
+
+$error_msg = '';
+$msg= '';
+try {
+      $koneksi = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+      $koneksi->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+  } 
+catch(PDOException $e) {
+      $error_msg = "Koneksi gagal: " . $e->getMessage();
+  }
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+      $nama = $_POST['nama'];
+      $gender = $_POST['gender'];
+      $user_name = $_POST['username']; 
+      $pass_word = $_POST['password'];
+      $role = $_POST['role'];
+      
+  
+      $sqlcek = "SELECT COUNT(*) AS jmlh FROM tuser WHERE username = :username";
+      $stmt_cek = $koneksi->prepare($sqlcek);
+      $stmt_cek->execute(['username' => $user_name]);
+      $baris = $stmt_cek->fetch(PDO::FETCH_ASSOC);
+
+      if ($baris['jmlh'] > 0) {   // Jika username sudah ada, isi pesan error
+          $error_msg = "Username anda sudah digunakan. Silakan gunakan username lain!";
+      } 
+      else {
+          // Jika Username blm ada baru INSERT dilakuin
+          try {
+              $sql = "INSERT INTO tuser (nama, gender, username, password, tRoles_id) 
+                      VALUES (:nama, :gender, :username, sha1(:password), :role)";
+              $stmt_insert = $koneksi->prepare($sql);
+              
+              // Eksekusi data
+              $stmt_insert->execute([
+                  'nama' => $nama,
+                  'gender' => $gender,
+                  'username' => $user_name,
+                  'password' => $pass_word,
+                  'role' => $role
+              ]);
+              $msg = "Username sudah ditambahkan";
+              // header('location: add-user.php');
+          }
+          catch (PDOException $e){
+              $error_msg = "Error: " . $e->getMessage();
+          }
+      }
+  }
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,8 +74,8 @@
         <a class="brand-mark" href="Dashboard.php" aria-label="adminHMD dashboard">
           <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
           <span class="brand-copy">
-            <span class="brand-title">adminHMD</span>
-            <span class="brand-subtitle">Admin Template</span>
+            <span class="brand-title">CharaDrink</span>
+            <span class="brand-subtitle">Bagian Admin</span>
           </span>
         </a>
       </div>
@@ -158,22 +212,76 @@
             <div class="heading-actions"><a class="btn btn-outline-secondary btn-sm" href="users.php"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Users</a></div>
           </div>
 
+          <?php if (!empty($error_msg)): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i> <?php echo $error_msg; ?>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          <?php endif; ?>
+
+          <?php if (!empty($msg)): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i> <?php echo $msg; ?>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          <?php endif; ?>
+
           <section class="row g-3">
             <div class="col-12 col-xl-8">
-              <form class="panel needs-validation" novalidate>
+              <form class="panel needs-validation" novalidate method="POST">
                 <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-person-plus" aria-hidden="true"></i><span>User Information</span></h2><p class="text-muted mb-0">Create a user account with validated fields.</p></div></div>
                 <div class="row g-3">
-                  <div class="col-md-6"><label class="form-label" for="firstName">First name</label><input class="form-control" id="firstName" type="text" required><div class="invalid-feedback">First name is required.</div></div>
-                  <div class="col-md-6"><label class="form-label" for="lastName">Last name</label><input class="form-control" id="lastName" type="text" required><div class="invalid-feedback">Last name is required.</div></div>
-                  <div class="col-md-6"><label class="form-label" for="email">Email</label><input class="form-control" id="email" type="email" required><div class="invalid-feedback">Enter a valid email.</div></div>
-                  <div class="col-md-6"><label class="form-label" for="phone">Phone</label><input class="form-control" id="phone" type="tel" required><div class="invalid-feedback">Phone number is required.</div></div>
-                  <div class="col-md-6"><label class="form-label" for="role">Role</label><select class="form-select" id="role" required><option value="">Choose role</option><option>Admin</option><option>Manager</option><option>Editor</option><option>Viewer</option></select><div class="invalid-feedback">Choose a role.</div></div>
-                  <div class="col-md-6"><label class="form-label" for="team">Team</label><select class="form-select" id="team" required><option value="">Choose team</option><option>Operations</option><option>Sales</option><option>Content</option><option>Finance</option></select><div class="invalid-feedback">Choose a team.</div></div>
-                  <div class="col-12"><label class="form-label" for="notes">Notes</label><textarea class="form-control" id="notes" rows="4" placeholder="Optional onboarding notes"></textarea></div>
+                  <!-- FULL NAME -->
+                  <div class="col-md-6"><label class="form-label" for="firstName">Full Name</label><input class="form-control" id="firstName" type="text" required name="nama"><div class="invalid-feedback">Full Name is required.</div></div>
+                  
+                  <!-- USERNAME -->
+                  <div class="col-md-6">
+                    <label class="form-label" for="lastName">Username</label>
+                    <input class="form-control" id="lastName" type="text" required name="username">
+                    <div class="invalid-feedback">Username is required.</div>
+                  </div>
+                  
+                  <!-- GENDER -->
+                  <div class="col-md-6">
+                    <label class="form-label d-block">Gender</label>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="gender" id="genderL" value="L" <?php echo (isset($_POST['gender']) && $_POST['gender'] == 'L') ? 'checked' : ''; ?> required>
+                      <label class="form-check-label" for="genderL">Laki-laki</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="gender" id="genderP" value="P" <?php echo (isset($_POST['gender']) && $_POST['gender'] == 'P') ? 'checked' : ''; ?> required>
+                      <label class="form-check-label" for="genderP">Perempuan</label>
+                    </div>
+                  </div>
+
+                  <!-- PASSWORD -->
+                  <div class="col-md-6">
+                    <label class="form-label" for="phone">Password</label>
+                    <input class="form-control" id="password" type="password" name="password" required>
+                    <div class="invalid-feedback">Password must be at least 6 characters.</div>
+                  </div>
+
+                  <!-- ROLES -->
+                  <div class="col-md-6"><label class="form-label" for="role">Role</label>
+                    <select class="form-select" id="role" name="role" required>
+                      <option value="">Choose role</option>
+                      <option value="1">Admin</option>
+                      <option value="2">Kasir</option>
+                      <option value="3">Gudang</option>
+                    </select>
+                    <div class="invalid-feedback">Choose a role.</div>
+                  </div>
                 </div>
-                <div class="d-flex flex-wrap justify-content-end gap-2 mt-4"><a class="btn btn-outline-secondary" href="users.php">Cancel</a><button class="btn btn-primary" type="submit"><i class="bi bi-person-check" aria-hidden="true"></i> Create User</button></div>
+                
+                <!-- SUBMIT & CANCEL -->
+                <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+                  <a class="btn btn-outline-secondary" href="users.php">Cancel</a>
+                  <button class="btn btn-primary" type="submit"><i class="bi bi-person-check" aria-hidden="true">
+                  </i> Create User</button>
+                </div>
               </form>
             </div>
+
             <div class="col-12 col-xl-4">
               <div class="panel h-100">
                 <h2 class="h5 mb-3 section-title"><i class="bi bi-list-check" aria-hidden="true"></i><span>Access Checklist</span></h2>
@@ -188,13 +296,7 @@
         </div>
       </main>
 
-      <footer class="admin-footer">
-        <div class="container-fluid px-3 px-lg-4">
-          <span>Copyright 2026 adminHMD. <br> Developed by <a target="_blank" class="fw-bold text-success" href="https://github.com/HasanMahmudDev">Md. Hasan Mahmud</a> • Distributed by <a target="_blank" class="fw-bold text-success" href="https://themewagon.com">ThemeWagon</a> </span>
-          <span>Professional dashboard template.</span>
-          <span>Validated user creation form.</span>
-        </div>
-      </footer>
+
     </div>
   </div>
 

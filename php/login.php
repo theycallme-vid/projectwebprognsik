@@ -18,12 +18,6 @@
       $password_input = trim($_POST['password']);
       $password_sha1 = sha1($password_input);
 
-      // // ==================== CORETAN DEBUG (AKAN MUNCUL DI ATAS LAYAR) ====================
-      // echo "<div style='background:#f8d7da; color:#721c24; padding:15px; border:1px solid #f5c6cb; margin:10px; font-family:monospace;'>";
-      // echo "<h3>--- HASIL PELACAKAN SYSTEM ---</h3>";
-      // echo "1. Username yang kamu ketik : <b>" . htmlspecialchars($username_input) . "</b><br>";
-      // echo "2. Password SHA1 hasil ketikan : <b>" . $password_sha1 . "</b> (Panjang: " . strlen($password_sha1) . " karakter)<br><br>";
-
       // try {
       //     // TES KONDISI 1: Apakah username-nya ada di database? (tanpa ngecek password dulu)
       //     $sql_cek_user = "SELECT * FROM tuser WHERE username = :username";

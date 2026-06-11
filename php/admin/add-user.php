@@ -11,6 +11,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     exit;
 }
 
+if (!isset($_SESSION['tRole_id']) || $_SESSION['tRole_id'] !== 1) {
+    header("Location: ../login.php?error=tidak_memiliki_akses");
+    exit;
+}
 if (!isset($_SESSION['is_auth']) || $_SESSION['is_auth'] !== true) {
     header("Location: ../login.php");
     exit;
@@ -75,7 +79,7 @@ catch(PDOException $e) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="adminHMD professional admin dashboard template">
-  <title>Add User | CharaDrink</title>
+  <title>Add User | Admin</title>
 
   <link rel="stylesheet" href="../../../project/assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="../../../project/assets/vendors/bootstrap-icons/bootstrap-icons.css">
@@ -110,13 +114,21 @@ catch(PDOException $e) {
           <span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
           <span class="nav-text">Add User</span>
         </a>
-        <a class="nav-link" href="profile.php">
-          <span class="nav-icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
-          <span class="nav-text">Profile</span>
+        <a class="nav-link" href="category.php">
+          <span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
+          <span class="nav-text">Category</span>
         </a>
-        <a class="nav-link" href="charts.php">
+        <a class="nav-link" href="product.php" aria-current="page">
+          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+          <span class="nav-text">Products</span>
+        </a>
+        <a class="nav-link" href="bahanbaku.php" aria-current="page">
+          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+          <span class="nav-text">Raw Materials</span>
+        </a>
+        <a class="nav-link" href="aupplier.php">
           <span class="nav-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
-          <span class="nav-text">Charts</span>
+          <span class="nav-text">Suppliers</span>
         </a>
         <a class="nav-link" href="tables.php">
           <span class="nav-icon"><i class="bi bi-table" aria-hidden="true"></i></span>

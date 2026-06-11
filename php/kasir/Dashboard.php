@@ -1,10 +1,19 @@
+<?php 
+session_start();
+
+if (!isset($_SESSION['is_auth']) || $_SESSION['is_auth'] !== true) {
+    header("Location: ../login.php");
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="adminHMD professional admin dashboard template">
-  <title>Dashboard | adminHMD</title>
+  <title>Dashboard | Kasir</title>
 
   <link rel="stylesheet" href="../../../project/assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="../../../project/assets/vendors/bootstrap-icons/bootstrap-icons.css">
@@ -21,7 +30,7 @@
           <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
           <span class="brand-copy">
             <span class="brand-title">CharaDrink</span>
-            <span class="brand-subtitle">Bagian Gudang</span>
+            <span class="brand-subtitle">Bagian Kasir</span>
           </span>
         </a>
       </div>

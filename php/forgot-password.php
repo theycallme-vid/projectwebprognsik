@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="adminHMD authentication page">
-  <title>Forgot Password | adminHMD</title>
+  <title>Forgot Password | CharaDrink</title>
 
   <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/vendors/bootstrap-icons/bootstrap-icons.css">
@@ -17,9 +17,7 @@
   </button>
   <main class="auth-page">
     <section class="auth-card">
-      <a class="auth-brand" href="index.html"><span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span><span><strong>adminHMD</strong><small>Get a reset link for your account.</small></span></a>
-      <div class="auth-visual"><img src="../assets/images/png/dasher-ui-bootstrap-5.jpg" alt="adminHMD dashboard interface"></div>
-      <form class="needs-validation" novalidate>
+      <a class="auth-brand" href="forgot-password.php"><span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span><span><strong>CharaDrink</strong><small>Get a reset link for your account.</small></span></a>
         <div class="mb-4">
           <p class="eyebrow mb-1">Secure Access</p>
           <h1 class="h3 mb-1">Forgot Password</h1>
@@ -29,7 +27,7 @@
         <button class="btn btn-primary w-100" type="submit"><i class="bi bi-envelope-arrow-up" aria-hidden="true"></i> Send Reset Link</button>
       </form>
       <p class="text-muted small mt-3 mb-0">Check your inbox and spam folder after submitting.</p>
-      <div class="auth-footer">Remembered it? <a href="login.html">Back to login</a></div>
+      <div class="auth-footer">Remembered it? <a href="login.php">Back to login</a></div>
     </section>
   </main>
 

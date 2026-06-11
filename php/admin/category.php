@@ -1,5 +1,5 @@
 <?php
-require_once 'koneksiGudang.php';
+require_once 'koneksiAdmin.php';
 session_start();
 
 // SESSION LOG OUT
@@ -11,7 +11,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     exit;
 }
 
-// PENGECEKAN SESSION
+// PENGECEKAN SESSION ROLE & IS_AUTH
+if (!isset($_SESSION['tRole_id']) || $_SESSION['tRole_id'] !== 1) {
+    header("Location: ../login.php?error=tidak_memiliki_akses");
+    exit;
+}
 if (!isset($_SESSION['is_auth']) || $_SESSION['is_auth'] !== true) {
     header("Location: ../login.php");
     exit;
@@ -57,37 +61,70 @@ $msg= '';
       }
   }
 
-  // INSERT DATA
+  // INSERT & UPDATE DATA
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-      $nama = $_POST['nama'];
-      
+    $nama = $_POST['nama'];
+    $id = $_GET['id'];
+
+    if(isset($_POST['create'])){
       $sqlcek = "SELECT COUNT(*) AS jmlh FROM tkategori WHERE nama = :nama";
       $stmt_cek = $koneksi->prepare($sqlcek);
       $stmt_cek->execute(['nama' => $nama]);
       $baris = $stmt_cek->fetch(PDO::FETCH_ASSOC);
 
       if ($baris['jmlh'] > 0) {   // Jika username sudah ada, isi pesan error
-          $error_msg = "Username anda sudah digunakan. Silakan gunakan username lain!";
+        $error_msg = "Username anda sudah digunakan. Silakan gunakan username lain!";
       } 
       else {
-          // Jika Username blm ada baru INSERT dilakuin
-          try {
-              $sql = "INSERT INTO tkategori (nama) 
-                      VALUES (:nama)";
-              $stmt_insert = $koneksi->prepare($sql);
-              
-              // Eksekusi data
-              $stmt_insert->execute([
-                  'nama' => $nama,
-              ]);
-              $msg = "Category Sudah Ditambahkan";
-              header("Location: category.php");
-          }
-          catch (PDOException $e){
-              $error_msg = "Error: " . $e->getMessage();
-          }
+        // Jika Username blm ada baru INSERT dilakuin
+        try {
+          $sqlInsert = "INSERT INTO tkategori (nama) VALUES (:nama)";
+          $stmt_insert = $koneksi->prepare($sqlInsert);
+                    
+          // Eksekusi data
+          $stmt_insert->execute(['nama' => $nama,]);
+          header("Location: category.php");
+        }
+        catch (PDOException $e){
+          $error_msg = "Error: " . $e->getMessage();
+        }
       }
+    }
+    else if(isset($_POST['update'])){
+      try{
+        $sqlUpdate = "UPDATE tkategori SET nama = '".$nama."' WHERE id =".$id;
+        $koneksi->exec($sqlUpdate);
+        header("Location: category.php");
+      }
+      catch (PDOException $e){
+        $error_msg = "Error: " . $e->getMessage();
+      } 
+    }   
   }
+
+  // SHOW & HIDE INPUT UPDATE CATEGORY
+  $editmode = false; 
+  $update_nama = '';
+
+  if(isset($_GET['action']) && $_GET['action'] == 'update' && isset($_GET['id'])) {
+    $editmode = true;
+
+    $sqlEdit = "SELECT nama FROM tkategori WHERE id = :id";
+    $stmtEdit = $koneksi->prepare($sqlEdit);
+
+    $stmtEdit->execute(['id' => $_GET['id']]);
+    $dataEdit = $stmtEdit->fetch(PDO::FETCH_ASSOC);
+
+    if ($dataEdit) {
+      $update_nama = $dataEdit['nama'];
+    }
+  }
+
+  if(isset($_GET['action']) && $_GET['action'] == 'cancel' && isset($_GET['id'])) {
+    $editmode = false;
+  }
+
+  
 ?>
 
 <!DOCTYPE html>
@@ -96,8 +133,8 @@ $msg= '';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="adminHMD professional admin dashboard template">
-  <title>Category | Gudang</title>
-
+  <title>Category | Admin</title>
+  <link rel="icon" type="image/png" href="../../assets/images/brand/logo/LogoCharaTea.png">
   <link rel="stylesheet" href="../../../project/assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="../../../project/assets/vendors/bootstrap-icons/bootstrap-icons.css">
   <link rel="stylesheet" href="../../../project/assets/css/style.css">
@@ -113,7 +150,7 @@ $msg= '';
           <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
           <span class="brand-copy">
             <span class="brand-title">CharaDrink</span>
-            <span class="brand-subtitle">Gudang</span>
+            <span class="brand-subtitle">Admin</span>
           </span>
         </a>
       </div>
@@ -123,29 +160,29 @@ $msg= '';
           <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
           <span class="nav-text">Dashboard</span>
         </a>
-        <a class="nav-link" href="product.php" aria-current="page">
-          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
-          <span class="nav-text">Products</span>
-        </a>
-        <a class="nav-link active" href="category.php" aria-current="page">
-          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
-          <span class="nav-text">Category</span>
+        <a class="nav-link" href="users.php">
+          <span class="nav-icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
+          <span class="nav-text">Users</span>
         </a>
         <a class="nav-link" href="add-user.php">
           <span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
           <span class="nav-text">Add User</span>
         </a>
-        <a class="nav-link" href="profile.php">
-          <span class="nav-icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
-          <span class="nav-text">Profile</span>
+        <a class="nav-link active" href="category.php" aria-current="page">
+          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+          <span class="nav-text">Category</span>
         </a>
-        <a class="nav-link" href="charts.php">
-          <span class="nav-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
-          <span class="nav-text">Charts</span>
+        <a class="nav-link" href="product.php" aria-current="page">
+          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+          <span class="nav-text">Products</span>
         </a>
-        <a class="nav-link" href="tables.php">
+        <a class="nav-link" href="bahanbaku.php" aria-current="page">
+          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+          <span class="nav-text">Raw Materials</span>
+        </a>
+        <a class="nav-link" href="supplier.php">
           <span class="nav-icon"><i class="bi bi-table" aria-hidden="true"></i></span>
-          <span class="nav-text">Tables</span>
+          <span class="nav-text">Suppliers</span>
         </a>
         <a class="nav-link" href="forms.php">
           <span class="nav-icon"><i class="bi bi-ui-checks-grid" aria-hidden="true"></i></span>
@@ -255,21 +292,37 @@ $msg= '';
             </div>
           <?php endif; ?>
 
-          <section class="row g-3">
-            <div class="col-12 col-xl-8">
-              <form class="panel needs-validation" novalidate method="POST">
+<section class="row g-3">
+<div class="col-12 col-xl-4">
+  <form class="panel needs-validation" novalidate method="POST">
                 <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-person-plus" aria-hidden="true"></i><span>Add Category</span></h2></div></div>
                 <div class="row g-3">
                   <div class="col-md-6"><label class="form-label" for="nama">Nama Kategori</label><input class="form-control" id="nama" type="text" required name="nama"><div class="invalid-feedback">Categoryname is required.</div></div>
                 </div>
                 
                 <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
-                  <a class="btn btn-outline-secondary" href="users.php">Cancel</a>
-                  <button class="btn btn-primary" type="submit"><i class="bi bi-person-check" aria-hidden="true"></i> Create Category</button>
+                  <button class="btn btn-primary" type="submit" name="create"><i class="bi bi-person-check" aria-hidden="true"></i> Create Category</button>
                 </div>
               </form>
+    </div>
+
+    <?php if($editmode): ?>
+        <div class="col-12 col-xl-4">
+        <form class="panel needs-validation" novalidate method="POST">
+                        <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-person-plus" aria-hidden="true"></i><span>Update Category</span></h2></div></div>
+                        <div class="row g-3">
+                          <div class="col-md-6"><label class="form-label" for="nama">Nama Kategori</label><input class="form-control" id="nama" type="text" required name="nama" value="<?php echo $update_nama ?>"><div class="invalid-feedback">Categoryname is required.</div></div>
+                        </div>
+                       
+                        <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+                          <a class="btn btn-outline-secondary" href="category.php">Cancel</a>
+                          <button class="btn btn-primary" type="submit" name="update"><i class="bi bi-person-check" aria-hidden="true"></i> Update Category</button>
+                        </div>
+                        
+                      </form>
             </div>
-          </section>
+    <?php endif;?>
+</section>
 
           <hr class="my-5">
                     <section class="panel mt-3">
@@ -297,6 +350,7 @@ $msg= '';
                     <td><?php echo $item[1] ?></td>
                     <td class="text-end">
                       <a class="btn btn-light btn-sm" href="user-details.html?">View</a>
+                      <a class="btn btn-light btn-sm" href="category.php?action=update&id=<?php echo urlencode($item[0]);?>">Update</a>
                       <a class="btn btn-light btn-sm" href="category.php?action=delete&id=<?php echo urlencode($item[0]);?>" onclick="return confirm('Yakin ingin menghapus user <?php echo $item[1]; ?> ?');">Delete</a>
                     </td>
                   </tr>

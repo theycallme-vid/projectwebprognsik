@@ -76,7 +76,6 @@ $msg= '';
         $error_msg = "Username anda sudah digunakan. Silakan gunakan username lain!";
       } 
       else {
-        // Jika Username blm ada baru INSERT dilakuin
         try {
           $sqlInsert = "INSERT INTO tkategori (nama) VALUES (:nama)";
           $stmt_insert = $koneksi->prepare($sqlInsert);
@@ -163,10 +162,6 @@ $msg= '';
         <a class="nav-link" href="users.php">
           <span class="nav-icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
           <span class="nav-text">Users</span>
-        </a>
-        <a class="nav-link" href="add-user.php">
-          <span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
-          <span class="nav-text">Add User</span>
         </a>
         <a class="nav-link active" href="category.php" aria-current="page">
           <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>

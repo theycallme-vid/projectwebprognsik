@@ -18,39 +18,6 @@
       $password_input = trim($_POST['password']);
       $password_sha1 = sha1($password_input);
 
-      // try {
-      //     // TES KONDISI 1: Apakah username-nya ada di database? (tanpa ngecek password dulu)
-      //     $sql_cek_user = "SELECT * FROM tuser WHERE username = :username";
-      //     $stmt_cek = $koneksi->prepare($sql_cek_user);
-      //     $stmt_cek->execute(['username' => $username_input]);
-      //     $user_db = $stmt_cek->fetch(PDO::FETCH_ASSOC);
-
-      //     if ($user_db) {
-      //         echo "<span style='color:green;'><b>✓ ISI DATABASE: Username '" . htmlspecialchars($username_input) . "' BERHASIL DITEMUKAN!</b></span><br>";
-      //         echo "3. Password SHA1 yang ada di DB : <b>" . $user_db['password'] . "</b> (Panjang: " . strlen($user_db['password']) . " karakter)<br>";
-      //         echo "4. ID Role user ini di DB : <b>" . $user_db['tRoles_id'] . "</b><br><br>";
-              
-      //         if ($user_db['password'] === $password_sha1) {
-      //             echo "<span style='color:green;'><b>✓ KESIMPULAN: Password COCOK! Harusnya kamu berhasil login sekarang.</b></span><br>";
-      //         } else {
-      //             echo "<span style='color:red;'><b>✗ KESIMPULAN: Password TIDAK COCOK! Nilai SHA1 di database berbeda dengan ketikanmu.</b></span><br>";
-      //         }
-      //     } else {
-      //         echo "<span style='color:red;'><b>✗ ISI DATABASE: Username '" . htmlspecialchars($username_input) . "' TIDAK ADA DI DATABASE!</b></span><br><br>";
-              
-      //         // Tampilkan daftar semua username yang ada di database biar kamu tau yang benar apa
-      //         $stmt_all = $koneksi->query("SELECT username FROM tuser");
-      //         $all_users = $stmt_all->fetchAll(PDO::FETCH_COLUMN);
-      //         echo "Username yang terdaftar di databasemu saat ini adalah: <b>" . implode(", ", $all_users) . "</b><br>";
-      //         echo "<i>Silakan pastikan ketikan huruf besar/kecilnya sama persis dengan daftar di atas.</i><br>";
-      //     }
-      // } catch (PDOException $e) {
-      //     echo "Terjadi Error SQL: " . $e->getMessage() . "<br>";
-      // }
-      // echo "<h3>--------------------------------</h3>";
-      // echo "</div>";
-      // // ====================================================================================
-
       try {
           $sql = "SELECT * FROM tuser WHERE username = :username AND password = :password";
           $stmt = $koneksi->prepare($sql);

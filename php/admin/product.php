@@ -174,6 +174,61 @@ catch(PDOException $e) {
     $editmode = false;
   }
 
+  // ==========================================================
+// MENGAMBIL DATA UNTUK DROPDOWN ADD RECIPE
+// ==========================================================
+$produk_list = [];
+$bahanbaku_list = [];
+try {
+    // Ambil data Produk
+    $sql_prod = "SELECT kode, nama FROM tproduk ORDER BY nama ASC";
+    $produk_list = $koneksi->query($sql_prod)->fetchAll(PDO::FETCH_ASSOC);
+
+    // Ambil data Bahan Baku (Sesuaikan nama tabel tbahanbaku jika berbeda)
+    $sql_bb = "SELECT id, nama FROM tbahanbaku ORDER BY nama ASC";
+    $bahanbaku_list = $koneksi->query($sql_bb)->fetchAll(PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    $error_msg = "Gagal mengambil data dropdown recipe: " . $e->getMessage();
+}
+
+  // --- JIKA TOMBOL CREATE RECIPE DIKLIK ---
+if(isset($_POST['create_recipe'])){
+    $kode_produk = $_POST['recipe_product'];
+    $bahan_baku_arr = $_POST['bahan_baku']; // Ini akan menjadi Array
+    $jumlah_arr = $_POST['jumlah'];         // Ini juga akan menjadi Array
+
+    try {
+        // Gunakan Transaction agar jika 1 gagal, gagal semua (mencegah data setengah jadi)
+        $koneksi->beginTransaction();
+
+        // Sesuaikan nama tabel dan kolom database milikmu (misal: trecipe)
+        $sqlRecipe = "INSERT INTO trecipe (tProduk_kode, tBahanbaku_id, jumlah) VALUES (:produk, :bahan, :jumlah)";
+        $stmtRecipe = $koneksi->prepare($sqlRecipe);
+
+        // Lakukan perulangan (loop) sebanyak bahan baku yang diinputkan
+        for ($i = 0; $i < count($bahan_baku_arr); $i++) {
+            $bahan_id = $bahan_baku_arr[$i];
+            $jumlah_bb = $jumlah_arr[$i];
+
+            // Pastikan bahan dan jumlah tidak kosong sebelum di-insert
+            if (!empty($bahan_id) && !empty($jumlah_bb)) {
+                $stmtRecipe->execute([
+                    'produk' => $kode_produk,
+                    'bahan' => $bahan_id,
+                    'jumlah' => $jumlah_bb
+                ]);
+            }
+        }
+
+        $koneksi->commit(); // Simpan permanen ke database
+        header("Location: product.php?status=created"); 
+        exit;
+    } catch(PDOException $e) {
+        $koneksi->rollBack(); // Batalkan semua insert jika ada error
+        $error_msg = "Gagal menambah Recipe: " . $e->getMessage();
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -212,10 +267,6 @@ catch(PDOException $e) {
         <a class="nav-link" href="users.php">
           <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
           <span class="nav-text">Users</span>
-        </a>
-        <a class="nav-link" href="add-user.php">
-          <span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
-          <span class="nav-text">Add User</span>
         </a>
         <a class="nav-link" href="category.php">
           <span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
@@ -365,7 +416,7 @@ catch(PDOException $e) {
                   <div class="col-md-6">
                     <label class="form-label" for="harga">Harga Jual</label>
                     <input class="form-control" id="harga" type="number" required name="harga">
-                    <div class="invalid-feedback">Harga Jual is required.</div>
+                    <div class="invalid-feedback">Selling Price is required.</div>
                   </div>
                   <!-- Add_PRODUCT - HARGA JUAL -->
                   <div class="col-md-6">
@@ -387,12 +438,66 @@ catch(PDOException $e) {
                     <div class="invalid-feedback">Choose a role.</div>
                   </div>
                 </div>
-                
                 <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
                   <button class="btn btn-primary" type="submit" name="create"><i class="bi bi-person-check" aria-hidden="true"></i> Create Product</button>
                 </div>
               </form>
             </div>
+
+
+            <!-- INSERT RECIPE -->
+            <div class="col-12 col-xl-4">
+  <form class="panel needs-validation" novalidate method="POST" id="formAddRecipe">
+    <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-journal-text" aria-hidden="true"></i><span>Add Recipe</span></h2></div></div>
+    
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label" for="recipe_product">Pilih Produk</label>
+        <select class="form-select" id="recipe_product" name="recipe_product" required>
+          <option value="">-- Pilih Produk --</option>
+          <?php foreach ($produk_list as $prod): ?>
+              <option value="<?php echo htmlspecialchars($prod['kode']); ?>">
+                  <?php echo htmlspecialchars($prod['nama']); ?>
+              </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Bahan Baku & Jumlah</label>
+        <div id="recipe-ingredients-container">
+          <div class="row g-2 mb-2 ingredient-row align-items-center">
+            <div class="col-6">
+              <select class="form-select" name="bahan_baku[]" required>
+                <option value="">Pilih Bahan Baku</option>
+                <?php foreach ($bahanbaku_list as $bb): ?>
+                    <option value="<?php echo $bb['id']; ?>">
+                        <?php echo htmlspecialchars($bb['nama']); ?>
+                    </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-4">
+              <input type="number" class="form-control" name="jumlah[]" placeholder="Jumlah" required>
+            </div>
+            <div class="col-2 text-end">
+              <button type="button" class="btn btn-outline-danger btn-sm btn-remove-row" disabled><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+        </div>
+        
+        <button type="button" class="btn btn-sm btn-outline-secondary mt-1" id="btnAddIngredient">
+          <i class="bi bi-plus-circle"></i> Tambah Bahan Baku
+        </button>
+      </div>
+
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+      <button class="btn btn-primary" type="submit" name="create_recipe"><i class="bi bi-save" aria-hidden="true"></i> Create Recipe</button>
+    </div>
+  </form>
+</div>
 
       <?php if($editmode): ?>
       <!-- UPDATE PRODUCT -->
@@ -472,7 +577,7 @@ catch(PDOException $e) {
                     <td><?php echo $item[2] ?></td>
                     <td><?php echo $item[3] ?></td>
                     <td class="text-end">
-                      <a class="btn btn-light btn-sm" href="user-details.html?">View</a>
+                      <a class="btn btn-light btn-sm" href="user-details.html?">View Recipe</a>
                       <a class="btn btn-light btn-sm"href="product.php?action=update&kode=<?php echo urlencode($item[0]);?>">Update</a>
                       <a class="btn btn-light btn-sm" href="product.php?action=delete&kode=<?php echo urlencode($item[0]);?>" onclick="return confirm('Yakin ingin menghapus user <?php echo $item[1]; ?> ?');">Delete</a>
                     </td>

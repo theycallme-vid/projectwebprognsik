@@ -32,96 +32,74 @@ catch(PDOException $e) {
     $error_msg = "Koneksi gagal: " . $e->getMessage();
   }
 
-  // MENAMPILKAN DATA PRODUK DARI tProduk
+  // MENAMPILKAN BAHAN BAKU DARI tBahanBaku
   try{
     $dataku = array();
-    $sql = "SELECT p.kode, p.nama, p.hargaJual, k.nama as nama_kategori FROM tproduk p INNER JOIN tkategori k ON p.tKategori_id = k.id";
+    $sql = "SELECT b.id, b.nama, b.stok, s.nama as nama_satuan FROM tBahanbaku b INNER JOIN tSatuan s ON b.tSatuan_id = s.id";
     $hasil = $koneksi->query($sql);
     if($hasil->rowCount()>0){
       while($baris = $hasil->fetch()){
         $kolom = array();
-        $kolom[] = $baris['kode'];
+        $kolom[] = $baris['id'];
         $kolom[] = $baris['nama'];
-        $kolom[] = $baris['hargaJual'];
-        $kolom[] = $baris['nama_kategori'];
+        $kolom[] = $baris['nama_satuan'];
+        $kolom[] = $baris['stok'];
         $dataku[] = $kolom;
       }
       unset($hasil);
     }
     else{
-      $msg = "Data tidak ditemukan";
+      $msg = "Data Bahan Baku tidak ditemukan";
     }
   }
   catch(PDOException $e){
     $pesan = 'Error: '.$e->getMessage();
 }
 
-  // // HAPUS DATA
-  // if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['kode'])) {
-  //     $hapus_kode = $_GET['kode'];
-  //     try {
-  //         $sql2 = "DELETE FROM tproduk WHERE kode = :kode";
-  //         $stmt2 = $koneksi->prepare($sql2);
-  //         $stmt2->execute(['kode' => $hapus_kode]);
-  //         header("Location: product.php?status=deleted");
-  //         exit;
-  //     } catch(PDOException $e) {
-  //         $error_msg = "Gagal menghapus data: " . $e->getMessage();
-  //     }
-  // }
+  // HAPUS DATA
+  if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
+      $hapus_id = $_GET['id'];
+      try {
+          $sql2 = "DELETE FROM tBahanbaku WHERE id = :id";
+          $stmt2 = $koneksi->prepare($sql2);
+          $stmt2->execute(['id' => $hapus_id]);
+          header("Location: bahanbaku.php?status=deleted");
+          exit;
+      } catch(PDOException $e) {
+          $error_msg = "Gagal menghapus data: " . $e->getMessage();
+      }
+  }
 
   // INSERT DATA 
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-      $kode = trim($_POST['kode']);
-      $harga = trim($_POST['harga']);
-      $productname = trim($_POST['productname']); 
-      $kategori = $_POST['kategori'];
-
+      $id = trim($_POST['id']);
+      $nama = trim($_POST['nama']);
+      $stok = trim($_POST['stok']); 
+      $satuan = $_POST['satuan'];
+      
       // --- JIKA TOMBOL CREATE DIKLIK ---
       if(isset($_POST['create'])){
-        $sqlcek = "SELECT COUNT(*) AS jmlh FROM tproduk WHERE kode = :kode";
+        $sqlcek = "SELECT COUNT(*) AS jmlh FROM tBahanbaku WHERE id = :id";
         $stmt_cek = $koneksi->prepare($sqlcek);
-        $stmt_cek->execute(['kode' => $kode]);
+        $stmt_cek->execute(['id' => $id]);
         $baris = $stmt_cek->fetch(PDO::FETCH_ASSOC);
 
         if ($baris['jmlh'] > 0) {   
-            $error_msg = "Kode Produk sudah digunakan. Silakan gunakan Kode lain!";
+            $error_msg = "ID Bahan Baku sudah digunakan. Silakan gunakan Kode lain!";
         } 
-        else {
-            try {
-                $sql = "INSERT INTO tproduk (kode, nama, hargaJual, tKategori_id) 
-                        VALUES (:kode, :nama ,:hargaJual, :kategori)";
-                $stmt_insert = $koneksi->prepare($sql);
-                
-                $stmt_insert->execute([
-                    'kode' => $kode,
-                    'hargaJual' => $harga,
-                    'nama' => $productname,
-                    'kategori' => $kategori
-                ]);
-                
-                // Arahkan kembali dengan bawaan status sukses
-                header("Location: product.php?status=created");
-                exit; // WAJIB ADA SETELAH HEADER
-            }
-            catch (PDOException $e){
-                $error_msg = "Gagal menambah produk: " . $e->getMessage();
-            }
-        }
       }
 
       // --- JIKA TOMBOL UPDATE DIKLIK ---
       elseif(isset($_POST['update'])){
         try{
-          // PERBAIKAN: Gunakan prepare statement agar aman dari SQL Error/Injection
-          $sqlUpdate = "UPDATE tproduk SET nama = :nama, hargaJual = :harga, tKategori_id = :kategori WHERE kode = :kode";
+          $sqlUpdate = "UPDATE tBahanbaku SET id = :id, nama = :nama, stok = :stok, tSatuan_id = :satuan WHERE id = :id";
           $stmt_update = $koneksi->prepare($sqlUpdate);
           
           $stmt_update->execute([
-              'nama' => $productname,
-              'harga' => $harga,
-              'kategori' => $kategori,
-              'kode' => $kode
+              'nama' => $nama,
+              'stok' => $stok,
+              'satuan' => $satuan,
+              'id' => $id
           ]);
           
           // Arahkan kembali dengan bawaan status sukses
@@ -129,7 +107,7 @@ catch(PDOException $e) {
           exit; // WAJIB ADA SETELAH HEADER
         }
         catch (PDOException $e){
-          $error_msg = "Gagal memperbarui produk: " . $e->getMessage();
+          $error_msg = "Gagal memperbarui bahan baku: " . $e->getMessage();
         }
       }
   }
@@ -137,40 +115,47 @@ catch(PDOException $e) {
 
 
 //  KATEGORI UNTUK DROPDOWN
-  $kategori_list = [];
+  $satuan_list = [];
   try {
-      $sql_kategori = "SELECT id, nama FROM tkategori ORDER BY nama ASC";
-      $stmt_kategori = $koneksi->query($sql_kategori);
-      $kategori_list = $stmt_kategori->fetchAll(PDO::FETCH_ASSOC);
+      $sql_satuan = "SELECT id, nama FROM tSatuan ORDER BY nama ASC";
+      $stmt_satuan = $koneksi->query($sql_satuan);
+      $satuan_list = $stmt_satuan->fetchAll(PDO::FETCH_ASSOC);
   } catch(PDOException $e) {
-      $error_msg = "Gagal mengambil kategori: " . $e->getMessage();
+      $error_msg = "Gagal mengambil satuan: " . $e->getMessage();
   }
 
-  // SHOW & HIDE INPUT UPDATE CATEGORY
+// SHOW HIDE INPUT UNIT (PERBAIKAN: Menggunakan parameter action)
+$unitmode = false;
+if (isset($_GET['action']) && $_GET['action'] === 'addunit') {
+    $unitmode = true;
+}
+
+  
+  // SHOW & HIDE INPUT UPDATE BAHAN BAKU
   $editmode = false; 
   $update_nama = '';
-  $update_kode= '';
-  $update_harga = '';
-  $update_katId = '';
+  $update_id= '';
+  $update_stok = '';
+  $update_satId = '';
 
-  if(isset($_GET['action']) && $_GET['action'] == 'update' && isset($_GET['kode'])) {
+  if(isset($_GET['action']) && $_GET['action'] == 'update' && isset($_GET['id'])) {
     $editmode = true;
 
-    $sqlEdit = "SELECT kode, nama, hargaJual, tKategori_id FROM tproduk WHERE kode = :kode";
+    $sqlEdit = "SELECT id, nama, stok, tSatuan_id FROM tBahanbaku WHERE id = :id";
     $stmtEdit = $koneksi->prepare($sqlEdit);
 
-    $stmtEdit->execute(['kode' => $_GET['kode']]);
+    $stmtEdit->execute(['id' => $_GET['id']]);
     $dataEdit = $stmtEdit->fetch(PDO::FETCH_ASSOC);
 
     if ($dataEdit) {
       $update_nama = $dataEdit['nama'];
-      $update_kode = $dataEdit['kode'];
-      $update_harga = $dataEdit['hargaJual'];
-      $update_katId = $dataEdit['tKategori_id'];
+      $update_id = $dataEdit['id'];
+      $update_stok = $dataEdit['stok'];
+      $update_satId = $dataEdit['tSatuan_id'];
     }
   }
 
-  if(isset($_GET['action']) && $_GET['action'] == 'cancel' && isset($_GET['kode'])) {
+  if(isset($_GET['action']) && $_GET['action'] == 'cancel' && isset($_GET['id'])) {
     $editmode = false;
   }
 
@@ -182,7 +167,7 @@ catch(PDOException $e) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="adminHMD professional admin dashboard template">
-  <title>Bahan Baku | Gudang</title>
+  <title>Bahan Baku | Admin</title>
 
   <link rel="stylesheet" href="../../../project/assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="../../../project/assets/vendors/bootstrap-icons/bootstrap-icons.css">
@@ -199,7 +184,7 @@ catch(PDOException $e) {
           <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
           <span class="brand-copy">
             <span class="brand-title">CharaDrink</span>
-            <span class="brand-subtitle">GUdang</span>
+            <span class="brand-subtitle">Admin</span>
           </span>
         </a>
       </div>
@@ -209,13 +194,9 @@ catch(PDOException $e) {
           <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
           <span class="nav-text">Dashboard</span>
         </a>
-        <a class="nav-link active" href="bahanbaku.php">
+        <a class="nav-link" href="users.php">
           <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
-          <span class="nav-text">Raw Materials</span>
-        </a>
-        <a class="nav-link" href="add-user.php">
-          <span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
-          <span class="nav-text">Add User</span>
+          <span class="nav-text">Users</span>
         </a>
         <a class="nav-link" href="category.php">
           <span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
@@ -224,6 +205,10 @@ catch(PDOException $e) {
         <a class="nav-link" href="product.php" aria-current="page">
           <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
           <span class="nav-text">Products</span>
+        </a>
+        <a class="nav-link active" href="bahanbaku.php" aria-current="page">
+          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+          <span class="nav-text">Raw Materials</span>
         </a>
         <a class="nav-link" href="supplier.php">
           <span class="nav-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
@@ -325,6 +310,10 @@ catch(PDOException $e) {
                 <h1 class="h3 mb-1">Raw Materials</h1>
               </div>
             </div>
+            <div class="heading-actions">
+              <a class="btn btn-primary btn-sm" href="bahanbaku.php?action=addunit">
+                <i class="bi bi-person-plus" aria-hidden="true"></i> Add Unit</a>
+            </div>
           </div>
 
           <?php if (!empty($error_msg)): ?>
@@ -343,59 +332,59 @@ catch(PDOException $e) {
 
 
         <section class="row g-3">
-
-
       <?php if($editmode): ?>
-      <!-- UPDATE PRODUCT -->
+      <!-- UPDATE RAW MATERIAL -->
       <div class="col-12 col-xl-4">
         <form class="panel needs-validation" novalidate method="POST">
             <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-person-plus" aria-hidden="true"></i><span>Update Product</span></h2></div></div>
                 <div class="row g-3">
+                  <!-- Update_Raw Material - ID -->
                   <div class="col-md-6">
-                    <label class="form-label" for="kode">Kode Produk</label>
-                    <input class="form-control" id="kode" type="text" required name="kode" value="<?php echo $update_kode ?>">
-                    <div class="invalid-feedback">Code Product is required.</div>
+                    <label class="form-label" for="id">ID Bahan Baku</label>
+                    <input class="form-control" id="id" type="text" required name="id" value="<?php echo $update_id ?>">
+                    <div class="invalid-feedback">Raw Material ID is required.</div>
                   </div>
 
+                  <!-- Update_Raw Material - NAMA -->
                   <div class="col-md-6">
-                    <label class="form-label" for="harga">Harga Jual</label>
-                    <input class="form-control" id="harga" type="number" required name="harga" value="<?php echo $update_harga ?>">
-                    <div class="invalid-feedback">Harga Jual is required.</div>
-                  </div>
-                  <!-- Update_PRODUCT - HARGA JUAL -->
-                  <div class="col-md-6">
-                    <label class="form-label" for="productname">Nama Produk</label>
-                    <input class="form-control" id="productname" type="text" required name="productname" value="<?php echo $update_nama?>">
-                    <div class="invalid-feedback">Productname is required.</div>
+                    <label class="form-label" for="nama">Nama</label>
+                    <input class="form-control" id="nama" type="text" required name="nama" value="<?php echo $update_nama?>">
+                    <div class="invalid-feedback">Name is required.</div>
                   </div>
 
-                  <!-- Update_PRODUCT - KATEGORI -->
-                  <div class="col-md-6"><label class="form-label" for="kategori">Kategori</label>
-                    <select class="form-select" id="kategori" name="kategori" required>
-                    <?php foreach ($kategori_list as $kat): ?>
+                  <!-- Update_Raw Material - STOK -->
+                  <div class="col-md-6">
+                    <label class="form-label" for="stok">Stok</label>
+                    <input class="form-control" id="stok" type="number" required name="stok" value="<?php echo $update_stok ?>">
+                    <div class="invalid-feedback">Stock is required.</div>
+                  </div>
+
+                  <!-- Update_Raw Material - SATUAN -->
+                  <div class="col-md-6"><label class="form-label" for="satuan">Satuan</label>
+                    <select class="form-select" id="satuan" name="satuan" required>
+                    <?php foreach ($satuan_list as $sat): ?>
                     <option
-                        value="<?php echo $kat['id']; ?>"
-                        <?php echo ($kat['id'] == $update_katId) ? 'selected' : ''; ?>
+                        value="<?php echo $sat['id']; ?>"
+                        <?php echo ($sat['id'] == $update_satId) ? 'selected' : ''; ?>
                     >
-                        <?php echo htmlspecialchars($kat['nama']); ?>
+                        <?php echo htmlspecialchars($sat['nama']); ?>
                     </option>
                     <?php endforeach; ?>
                     </select>
-                    <div class="invalid-feedback">Choose a role.</div>
+                    <div class="invalid-feedback">Choose a unit.</div>
                   </div>
                 </div>
                 <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
                   <a class="btn btn-outline-secondary" href="bahanbaku.php">Cancel</a>
-                  <button class="btn btn-primary" type="submit" name="update"><i class="bi bi-person-check" aria-hidden="true"></i> Update Product</button>
-                </div>
-                        
+                  <button class="btn btn-primary" type="submit" name="update"><i class="bi bi-person-check" aria-hidden="true"></i> Update Raw Material</button>
+                </div>           
             </form>
           </div>
           <?php endif;?>
 </section>
 
-          <hr class="my-5">
-                    <section class="panel mt-3">
+      <hr class="my-5">
+        <section class="panel mt-3">
             <div class="panel-header">
               <div>
                 <h2 class="h5 mb-1 section-title"><i class="bi bi-table" aria-hidden="true"></i><span>Raw Materials List</span></h2>
@@ -408,10 +397,10 @@ catch(PDOException $e) {
               <table class="table align-middle mb-0" id="usersTable" data-searchable-table>
                 <thead>
                   <tr>
-                    <th scope="col">Kode</th>
-                    <th scope="col">Nama Produk</th>
-                    <th scope="col">Harga Jual</th>
-                    <th scope="col">Kategori</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nama</th>
+                    <th scope="col">Satuan</th>
+                    <th scope="col">Stok</th>
                     <th scope="col" class="text-end">Action</th>
                   </tr>
                 </thead>
@@ -424,7 +413,8 @@ catch(PDOException $e) {
                     <td><?php echo $item[3] ?></td>
                     <td class="text-end">
                       <a class="btn btn-light btn-sm" href="user-details.html?">View</a>
-                      <a class="btn btn-light btn-sm"href="bahanbaku.php?action=update&kode=<?php echo urlencode($item[0]);?>">Update</a>
+                      <a class="btn btn-light btn-sm"href="bahanbaku.php?action=update&id=<?php echo urlencode($item[0]);?>">Update</a>
+                      <a class="btn btn-light btn-sm" href="bahanbaku.php?action=delete&id=<?php echo urlencode($item[0]);?>" onclick="return confirm('Yakin ingin menghapus bahan baku <?php echo $item[1]; ?> ?');">Delete</a>
                     </td>
                   </tr>
                   <?php endforeach ?>

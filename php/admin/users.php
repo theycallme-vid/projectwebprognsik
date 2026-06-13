@@ -77,7 +77,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['userna
 }
 
 // ==========================================
-// INSERT & UPDATE DATA (PERBAIKAN LOGIKA POST)
+// INSERT & UPDATE DATA 
 // ==========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
@@ -120,12 +120,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif(isset($_POST['update'])){
         $nama_input = trim($_POST['name']);
         $new_username = trim($_POST['username']); 
-        $old_username = trim($_POST['old_username']); // PERBAIKAN 1: Tangkap username lama dari hidden input
+        $old_username = trim($_POST['old_username']); 
         $gender_input = $_POST['gender'];
         $role_input = $_POST['roles'];
 
         try {
-            // PERBAIKAN 2: Ubah jadi new_username, WHERE menggunakan old_username
             $sqlUpdate = "UPDATE tuser SET nama = :nama, gender = :gender, username = :new_username, tRoles_id = :role WHERE username = :old_username";
             $stmt_update = $koneksi->prepare($sqlUpdate);
             $stmt_update->execute([
@@ -147,7 +146,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name_role = trim($_POST['nama_role']);
         if (!empty($name_role)) {
             try {
-                // PERBAIKAN 3: Pastikan penulisan tabel adalah tRoles sesuai query lain
                 $sqladd = "INSERT INTO tRoles (role) VALUES (:nama)";
                 $stmt_insert = $koneksi->prepare($sqladd);
                 $stmt_insert->execute(['nama' => $name_role]);
@@ -162,20 +160,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-//  ROLES UNTUK DROPDOWN
+// ROLES UNTUK DROPDOWN & VIEW ROLES
 $role_list = [];
 try {
-    $sql_role = "SELECT id, role FROM tRoles ORDER BY role ASC";
+    $sql_role = "SELECT id, role FROM tRoles ORDER BY id ASC";
     $stmt_role = $koneksi->query($sql_role);
     $role_list = $stmt_role->fetchAll(PDO::FETCH_ASSOC);
 } catch(PDOException $e) {
     $error_msg = "Gagal mengambil role: " . $e->getMessage();
 }
 
-// SHOW HIDE INPUT ROLE
+// SHOW HIDE INPUT ROLE & VIEW ROLES
 $rolemode = false;
+$viewrolemode = false;
 if (isset($_GET['action']) && $_GET['action'] === 'addrole') {
     $rolemode = true;
+}
+if (isset($_GET['action']) && $_GET['action'] === 'viewroles') {
+    $viewrolemode = true;
 }
 
 // SHOW & HIDE INPUT UPDATE USERS
@@ -187,11 +189,8 @@ $update_roleId = '';
 
 if(isset($_GET['action']) && $_GET['action'] == 'update' && isset($_GET['username'])) {
     $editmode = true;
-
-    // PERBAIKAN 4: Ubah query untuk mengambil ID role, BUKAN nama role agar dropdown tersinkronisasi
     $sqlEdit = "SELECT nama, username, gender, tRoles_id FROM tuser WHERE username = :username";
     $stmtEdit = $koneksi->prepare($sqlEdit);
-
     $stmtEdit->execute(['username' => $_GET['username']]);
     $dataEdit = $stmtEdit->fetch(PDO::FETCH_ASSOC);
 
@@ -199,13 +198,14 @@ if(isset($_GET['action']) && $_GET['action'] == 'update' && isset($_GET['usernam
       $update_name = $dataEdit['nama'];
       $update_username = $dataEdit['username'];
       $update_gender = $dataEdit['gender'];
-      $update_roleId = $dataEdit['tRoles_id']; // ID Role sukses diambil
+      $update_roleId = $dataEdit['tRoles_id']; 
     }
 }
 
 if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
     $editmode = false;
     $rolemode = false;
+    $viewrolemode = false;
 }
 ?>
 
@@ -243,13 +243,11 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
         <a class="nav-link" href="category.php"><span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span><span class="nav-text">Category</span></a>
         <a class="nav-link" href="product.php" aria-current="page"><span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span><span class="nav-text">Products</span></a>
         <a class="nav-link" href="bahanbaku.php" aria-current="page"><span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span><span class="nav-text">Raw Materials</span></a>
-        <a class="nav-link" href="tables.php"><span class="nav-icon"><i class="bi bi-table" aria-hidden="true"></i></span><span class="nav-text">Tables</span></a>
-        <a class="nav-link" href="forms.php"><span class="nav-icon"><i class="bi bi-ui-checks-grid" aria-hidden="true"></i></span><span class="nav-text">Forms</span></a>
-        <a class="nav-link" href="components.php"><span class="nav-icon"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i></span><span class="nav-text">Components</span></a>
-        <a class="nav-link" href="alerts.php"><span class="nav-icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span><span class="nav-text">Alerts</span></a>
-        <a class="nav-link" href="modals.php"><span class="nav-icon"><i class="bi bi-window-stack" aria-hidden="true"></i></span><span class="nav-text">Modals</span></a>
-        <a class="nav-link" href="settings.php"><span class="nav-icon"><i class="bi bi-gear" aria-hidden="true"></i></span><span class="nav-text">Settings</span></a>
-        <a class="nav-link" href="blank.php"><span class="nav-icon"><i class="bi bi-file-earmark" aria-hidden="true"></i></span><span class="nav-text">Blank Page</span></a>
+        <a class="nav-link" href="supplier.php">
+          <span class="nav-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
+          <span class="nav-text">Suppliers</span>
+        </a>
+        <a class="nav-link" href="operasional.php"><span class="nav-icon"><i class="bi bi-table" aria-hidden="true"></i></span><span class="nav-text">Operating Expenses</span></a>
       </nav>
     </aside>
 
@@ -307,9 +305,13 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
                 <p class="text-muted mb-0">Review accounts, roles, account status, and team ownership.</p>
               </div>
             </div>
-            <div class="heading-actions">
+            <div class="heading-actions d-flex gap-2">
+              <a class="btn btn-primary btn-sm" href="users.php?action=viewroles">
+                <i class="bi bi-list-ul" aria-hidden="true"></i> View Roles
+              </a>
               <a class="btn btn-primary btn-sm" href="users.php?action=addrole">
-                <i class="bi bi-person-plus" aria-hidden="true"></i> Add Role</a>
+                <i class="bi bi-person-plus" aria-hidden="true"></i> Add Role
+              </a>
             </div>
           </div>
 
@@ -403,7 +405,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
                   </div>
                 </div>
                 <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
-                  <a class="btn btn-outline-secondary" href="users.php">Cancel</a>
+                  <a class="btn btn-outline-secondary" href="users.php?action=cancel">Cancel</a>
                   <button class="btn btn-primary" type="submit" name="update"><i class="bi bi-check-circle"></i> Update User</button>
                 </div>           
               </form>
@@ -422,12 +424,52 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
                   </div>
                 </div>
                 <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
-                  <a class="btn btn-outline-secondary" href="users.php">Cancel</a>
+                  <a class="btn btn-outline-secondary" href="users.php?action=cancel">Cancel</a>
                   <button class="btn btn-primary" type="submit" name="add_role_submit"><i class="bi bi-check" aria-hidden="true"></i> Save Role </button>
                 </div>           
             </form>
           </div>
           <?php endif; ?>
+
+          <?php if ($viewrolemode): ?>
+          <div class="col-12 col-xl-4">
+            <div class="panel">
+              <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-card-list" aria-hidden="true"></i><span>Daftar Roles</span></h2></div></div>
+              
+              <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th scope="col" style="padding-left: 1.5rem;">ID</th>
+                      <th scope="col">Nama Role</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php if (count($role_list) > 0): ?>
+                        <?php foreach ($role_list as $r): ?>
+                        <tr>
+                          <td style="padding-left: 1.5rem;"><?php echo htmlspecialchars($r['id']); ?></td>
+                          <td><?php echo htmlspecialchars($r['role']); ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                          <td colspan="2" class="text-center py-3">Belum ada role terdaftar.</td>
+                        </tr>
+                    <?php endif; ?>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="px-3 pb-3">
+                <div class="d-flex flex-wrap justify-content-end gap-2 mt-4 border-top pt-3">
+                  <a class="btn btn-outline-secondary" href="users.php?action=cancel">Tutup</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <?php endif; ?>
+
           </section>
 
           <section class="panel mt-3">
@@ -466,6 +508,9 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
                   <?php endforeach ?>
                 </tbody>
               </table>
+            </div>
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mt-3 p-3">
+              <p class="text-muted small mb-0">Showing users list</p>
             </div>
           </section>
         </div>

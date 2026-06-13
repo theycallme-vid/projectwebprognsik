@@ -6,7 +6,6 @@ session_start();
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_unset();   // Mengosongkan semua variabel session
     session_destroy(); // Menghancurkan session di server
-  
     header("Location: ../login.php"); 
     exit;
 }
@@ -24,114 +23,139 @@ if (!isset($_SESSION['is_auth']) || $_SESSION['is_auth'] !== true) {
 $nama = $_SESSION['nama'];
 $error_msg = '';
 $msg= '';
+
+// Tangkap Notifikasi
+if (isset($_GET['status'])) {
+    if ($_GET['status'] == 'deleted') $msg = "Bahan baku berhasil dihapus!";
+    elseif ($_GET['status'] == 'created') $msg = "Bahan baku baru berhasil ditambahkan!";
+    elseif ($_GET['status'] == 'updated') $msg = "Data bahan baku berhasil diperbarui!";
+    elseif ($_GET['status'] == 'unit_created') $msg = "Unit/Satuan baru berhasil ditambahkan!";
+    elseif ($_GET['status'] == 'unit_updated') $msg = "Nama Unit/Satuan berhasil diperbarui!";
+    elseif ($_GET['status'] == 'unit_deleted') $msg = "Unit/Satuan berhasil dihapus!";
+}
+
 try {
     $koneksi = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
     $koneksi->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-  } 
+} 
 catch(PDOException $e) {
     $error_msg = "Koneksi gagal: " . $e->getMessage();
-  }
+}
 
-  // MENAMPILKAN BAHAN BAKU DARI tBahanBaku
-  try{
+// TAMPILKAN DATA DI LIST BAHAN BAKU
+try{
     $dataku = array();
     $sql = "SELECT b.id, b.nama, b.stok, s.nama as nama_satuan FROM tBahanbaku b INNER JOIN tSatuan s ON b.tSatuan_id = s.id";
     $hasil = $koneksi->query($sql);
     if($hasil->rowCount()>0){
-      while($baris = $hasil->fetch()){
-        $kolom = array();
-        $kolom[] = $baris['id'];
-        $kolom[] = $baris['nama'];
-        $kolom[] = $baris['nama_satuan'];
-        $kolom[] = $baris['stok'];
-        $dataku[] = $kolom;
-      }
-      unset($hasil);
+        while($baris = $hasil->fetch()){
+            $kolom = array();
+            $kolom[] = $baris['id'];
+            $kolom[] = $baris['nama'];
+            $kolom[] = $baris['nama_satuan'];
+            $kolom[] = $baris['stok'];
+            $dataku[] = $kolom;
+        }
+        unset($hasil);
     }
-    else{
-      $msg = "Data Bahan Baku tidak ditemukan";
-    }
-  }
-  catch(PDOException $e){
-    $pesan = 'Error: '.$e->getMessage();
+}
+catch(PDOException $e){
+    $error_msg = 'Error: '.$e->getMessage();
 }
 
-  // HAPUS DATA
-  if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
-      $hapus_id = $_GET['id'];
-      try {
-          $sql2 = "DELETE FROM tBahanbaku WHERE id = :id";
-          $stmt2 = $koneksi->prepare($sql2);
-          $stmt2->execute(['id' => $hapus_id]);
-          header("Location: bahanbaku.php?status=deleted");
-          exit;
-      } catch(PDOException $e) {
-          $error_msg = "Gagal menghapus data: " . $e->getMessage();
-      }
-  }
+// DELETE DATA BAHAN BAKU
+if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
+    $hapus_id = $_GET['id'];
+    try {
+        $sql2 = "DELETE FROM tBahanbaku WHERE id = :id";
+        $stmt2 = $koneksi->prepare($sql2);
+        $stmt2->execute(['id' => $hapus_id]);
+        header("Location: bahanbaku.php?status=deleted");
+        exit;
+    } catch(PDOException $e) {
+        $error_msg = "Gagal menghapus data: " . $e->getMessage();
+    }
+}
 
-  // INSERT DATA 
-  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-      $id = trim($_POST['id']);
-      $nama = trim($_POST['nama']);
-      $stok = trim($_POST['stok']); 
-      $satuan = $_POST['satuan'];
-      
-      // --- JIKA TOMBOL CREATE DIKLIK ---
-      if(isset($_POST['create'])){
+// DELETE DATA UNIT / SATUAN
+if (isset($_GET['action']) && $_GET['action'] == 'deleteunit' && isset($_GET['id'])) {
+    $hapus_id = $_GET['id'];
+    try {
+        $sql2 = "DELETE FROM tSatuan WHERE id = :id";
+        $stmt2 = $koneksi->prepare($sql2);
+        $stmt2->execute(['id' => $hapus_id]);
+        header("Location: bahanbaku.php?status=unit_deleted");
+        exit;
+    } catch(PDOException $e) {
+        $error_msg = "Gagal menghapus unit (Pastikan unit ini tidak sedang digunakan oleh bahan baku!): " . $e->getMessage();
+    }
+}
+
+// ==========================================
+// INSERT & UPDATE DATA (POST)
+// ==========================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    // --- JIKA TOMBOL CREATE BAHAN BAKU DIKLIK ---
+    if(isset($_POST['create'])){
+        $id = trim($_POST['id']);
+        $nama_bahan = trim($_POST['nama']);
+        $stok = trim($_POST['stok']); 
+        $satuan = $_POST['satuan'];
+        
         $sqlcek = "SELECT COUNT(*) AS jmlh FROM tBahanbaku WHERE id = :id";
         $stmt_cek = $koneksi->prepare($sqlcek);
         $stmt_cek->execute(['id' => $id]);
         $baris = $stmt_cek->fetch(PDO::FETCH_ASSOC);
 
         if ($baris['jmlh'] > 0) {   
-            $error_msg = "ID Bahan Baku sudah digunakan. Silakan gunakan Kode lain!";
+            $error_msg = "ID Bahan Baku sudah digunakan. Silakan gunakan ID lain!";
         } 
         else {
             try {
                 $sql = "INSERT INTO tBahanbaku (id, nama, stok, tSatuan_id) 
                         VALUES (:id, :nama ,:stok, :satuan)";
                 $stmt_insert = $koneksi->prepare($sql);
-                
                 $stmt_insert->execute([
                     'id' => $id,
-                    'nama' => $nama,
+                    'nama' => $nama_bahan,
                     'stok' => $stok,
                     'satuan' => $satuan
                 ]);
-                
-                // Arahkan kembali dengan bawaan status sukses
                 header("Location: bahanbaku.php?status=created");
-                exit; // WAJIB ADA SETELAH HEADER
+                exit; 
             }
             catch (PDOException $e){
                 $error_msg = "Gagal menambah bahan baku: " . $e->getMessage();
             }
         }
-      }
+    }
 
-      // --- JIKA TOMBOL UPDATE DIKLIK ---
-      elseif(isset($_POST['update'])){
+    // --- JIKA TOMBOL UPDATE BAHAN BAKU DIKLIK ---
+    elseif(isset($_POST['update'])){
+        $id = trim($_POST['id']);
+        $nama_bahan = trim($_POST['nama']);
+        $stok = trim($_POST['stok']); 
+        $satuan = $_POST['satuan'];
+
         try{
-          $sqlUpdate = "UPDATE tBahanbaku SET id = :id, nama = :nama, stok = :stok, tSatuan_id = :satuan WHERE id = :id";
-          $stmt_update = $koneksi->prepare($sqlUpdate);
-          
-          $stmt_update->execute([
-              'nama' => $nama,
-              'stok' => $stok,
-              'satuan' => $satuan,
-              'id' => $id
-          ]);
-          
-          // Arahkan kembali dengan bawaan status sukses
-          header("Location: bahanbaku.php?status=updated");
-          exit; // WAJIB ADA SETELAH HEADER
+            $sqlUpdate = "UPDATE tBahanbaku SET nama = :nama, stok = :stok, tSatuan_id = :satuan WHERE id = :id";
+            $stmt_update = $koneksi->prepare($sqlUpdate);
+            $stmt_update->execute([
+                'nama' => $nama_bahan,
+                'stok' => $stok,
+                'satuan' => $satuan,
+                'id' => $id
+            ]);
+            header("Location: bahanbaku.php?status=updated");
+            exit; 
         }
         catch (PDOException $e){
-          $error_msg = "Gagal memperbarui bahan baku: " . $e->getMessage();
+            $error_msg = "Gagal memperbarui bahan baku: " . $e->getMessage();
         }
-      }
-      // --- JIKA TOMBOL SUBMIT ADD UNIT DIKLIK (PERBAIKAN LOGIKA) ---
+    }
+    
+    // --- JIKA TOMBOL SUBMIT ADD UNIT DIKLIK ---
     elseif (isset($_POST['add_unit_submit'])) {
         $nama_unit = trim($_POST['nama_unit']);
         if (!empty($nama_unit)) {
@@ -148,40 +172,80 @@ catch(PDOException $e) {
             $error_msg = "Nama Unit tidak boleh kosong!";
         }
     }
-  }
 
+    // --- JIKA TOMBOL SUBMIT UPDATE UNIT DIKLIK ---
+    elseif (isset($_POST['update_unit_submit'])) {
+        $nama_unit = trim($_POST['nama_unit']);
+        $id_unit = $_POST['id_unit'];
 
-
-//  KATEGORI UNTUK DROPDOWN
-  $satuan_list = [];
-  try {
-      $sql_satuan = "SELECT id, nama FROM tSatuan ORDER BY nama ASC";
-      $stmt_satuan = $koneksi->query($sql_satuan);
-      $satuan_list = $stmt_satuan->fetchAll(PDO::FETCH_ASSOC);
-  } catch(PDOException $e) {
-      $error_msg = "Gagal mengambil satuan: " . $e->getMessage();
-  }
-
-// SHOW HIDE INPUT UNIT (PERBAIKAN: Menggunakan parameter action)
-$unitmode = false;
-if (isset($_GET['action']) && $_GET['action'] === 'addunit') {
-    $unitmode = true;
+        if (!empty($nama_unit)) {
+            try {
+                $sql_update_unit = "UPDATE tSatuan SET nama = :nama WHERE id = :id";
+                $stmt_up_unit = $koneksi->prepare($sql_update_unit);
+                $stmt_up_unit->execute(['nama' => $nama_unit, 'id' => $id_unit]);
+                header("Location: bahanbaku.php?status=unit_updated");
+                exit;
+            } catch (PDOException $e) {
+                $error_msg = "Gagal memperbarui satuan: " . $e->getMessage();
+            }
+        } else {
+            $error_msg = "Nama Unit tidak boleh kosong!";
+        }
+    }
 }
 
-  
-  // SHOW & HIDE INPUT UPDATE BAHAN BAKU
-  $editmode = false; 
-  $update_nama = '';
-  $update_id= '';
-  $update_stok = '';
-  $update_satId = '';
+//  UNIT / SATUAN UNTUK DROPDOWN & VIEW
+$satuan_list = [];
+try {
+    $sql_satuan = "SELECT id, nama FROM tSatuan ORDER BY id ASC";
+    $stmt_satuan = $koneksi->query($sql_satuan);
+    $satuan_list = $stmt_satuan->fetchAll(PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    $error_msg = "Gagal mengambil satuan: " . $e->getMessage();
+}
 
-  if(isset($_GET['action']) && $_GET['action'] == 'update' && isset($_GET['id'])) {
+// STATE UNTUK SHOW/HIDE PANEL
+$unitmode = false;
+$viewunitmode = false;
+$editunitmode = false;
+$update_unit_nama = '';
+$update_unit_id = '';
+
+if (isset($_GET['action'])) {
+    if ($_GET['action'] === 'addunit') {
+        $unitmode = true;
+    }
+    elseif ($_GET['action'] === 'viewunits') {
+        $viewunitmode = true;
+    }
+    elseif ($_GET['action'] === 'updateunit' && isset($_GET['id'])) {
+        $editunitmode = true;
+        try {
+            $sqlEditUnit = "SELECT id, nama FROM tSatuan WHERE id = :id";
+            $stmtEditUnit = $koneksi->prepare($sqlEditUnit);
+            $stmtEditUnit->execute(['id' => $_GET['id']]);
+            $dataEditUnit = $stmtEditUnit->fetch(PDO::FETCH_ASSOC);
+            if ($dataEditUnit) {
+                $update_unit_nama = $dataEditUnit['nama'];
+                $update_unit_id = $dataEditUnit['id'];
+            }
+        } catch (PDOException $e) {
+            $error_msg = "Gagal mengambil data unit: " . $e->getMessage();
+        }
+    }
+}
+
+// SHOW & HIDE INPUT UPDATE BAHAN BAKU
+$editmode = false; 
+$update_nama = '';
+$update_id= '';
+$update_stok = '';
+$update_satId = '';
+
+if(isset($_GET['action']) && $_GET['action'] == 'update' && isset($_GET['id'])) {
     $editmode = true;
-
     $sqlEdit = "SELECT id, nama, stok, tSatuan_id FROM tBahanbaku WHERE id = :id";
     $stmtEdit = $koneksi->prepare($sqlEdit);
-
     $stmtEdit->execute(['id' => $_GET['id']]);
     $dataEdit = $stmtEdit->fetch(PDO::FETCH_ASSOC);
 
@@ -191,12 +255,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'addunit') {
       $update_stok = $dataEdit['stok'];
       $update_satId = $dataEdit['tSatuan_id'];
     }
-  }
+}
 
-  if(isset($_GET['action']) && $_GET['action'] == 'cancel' && isset($_GET['id'])) {
+if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
     $editmode = false;
-  }
-
+    $unitmode = false;
+    $viewunitmode = false;
+    $editunitmode = false;
+}
 ?>
 
 <!DOCTYPE html>
@@ -228,34 +294,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'addunit') {
       </div>
 
       <nav class="sidebar-nav">
-        <a class="nav-link" href="Dashboard.php">
-          <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
-          <span class="nav-text">Dashboard</span>
-        </a>
-        <a class="nav-link" href="users.php">
-          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
-          <span class="nav-text">Users</span>
-        </a>
-        <a class="nav-link" href="category.php">
-          <span class="nav-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
-          <span class="nav-text">Category</span>
-        </a>
-        <a class="nav-link" href="product.php" aria-current="page">
-          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
-          <span class="nav-text">Products</span>
-        </a>
-        <a class="nav-link active" href="bahanbaku.php" aria-current="page">
-          <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
-          <span class="nav-text">Raw Materials</span>
-        </a>
-        <a class="nav-link" href="supplier.php">
-          <span class="nav-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
-          <span class="nav-text">Suppliers</span>
-        </a>
-        <a class="nav-link" href="operasional.php">
-          <span class="nav-icon"><i class="bi bi-table" aria-hidden="true"></i></span>
-          <span class="nav-text">Operating Expenses</span>
-        </a>
+        <a class="nav-link" href="Dashboard.php"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span><span class="nav-text">Dashboard</span></a>
+        <a class="nav-link" href="users.php"><span class="nav-icon"><i class="bi bi-people"></i></span><span class="nav-text">Users</span></a>
+        <a class="nav-link" href="category.php"><span class="nav-icon"><i class="bi bi-person-plus"></i></span><span class="nav-text">Category</span></a>
+        <a class="nav-link" href="product.php" aria-current="page"><span class="nav-icon"><i class="bi bi-people"></i></span><span class="nav-text">Products</span></a>
+        <a class="nav-link active" href="bahanbaku.php" aria-current="page"><span class="nav-icon"><i class="bi bi-people"></i></span><span class="nav-text">Raw Materials</span></a>
+        <a class="nav-link" href="supplier.php"><span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span><span class="nav-text">Suppliers</span></a>
+        <a class="nav-link" href="operasional.php"><span class="nav-icon"><i class="bi bi-table"></i></span><span class="nav-text">Operating Expenses</span></a>
       </nav>
     </aside>
     
@@ -263,13 +308,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'addunit') {
       <nav class="navbar admin-navbar navbar-expand bg-white">
         <div class="container-fluid px-3 px-lg-4">
           <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-controls="adminSidebar" aria-expanded="true" aria-label="Toggle sidebar">
-            <span></span>
-            <span></span>
-            <span></span>
+            <span></span><span></span><span></span>
           </button>
 
           <form class="d-none d-md-flex ms-3 flex-grow-1" role="search">
-            <input class="form-control search-input" type="search" placeholder="Search users, roles, teams" aria-label="Search">
+            <input class="form-control search-input" type="search" placeholder="Search..." aria-label="Search">
           </form>
 
           <div class="navbar-actions ms-auto">
@@ -283,24 +326,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'addunit') {
               </button>
               <div class="dropdown-menu dropdown-menu-end notification-menu">
                 <div class="dropdown-header fw-bold text-body">Notifications</div>
-                <a class="dropdown-item" href="users.php">
-                  <span class="notification-title">New user registered</span>
-                  <span class="notification-time">4 minutes ago</span>
-                </a>
-                <a class="dropdown-item" href="charts.php">
-                  <span class="notification-title">Revenue target reached</span>
-                  <span class="notification-time">32 minutes ago</span>
-                </a>
-                <a class="dropdown-item" href="settings.php">
-                  <span class="notification-title">Security review completed</span>
-                  <span class="notification-time">1 hour ago</span>
-                </a>
+                <a class="dropdown-item" href="users.php"><span class="notification-title">New user registered</span><span class="notification-time">4 minutes ago</span></a>
               </div>
             </div>
 
             <div class="dropdown">
               <button class="profile-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <span class="profile-name d-none d-sm-inline"><?php echo $_SESSION['nama']; ?></span>
+              <span class="profile-name d-none d-sm-inline"><?php echo htmlspecialchars($_SESSION['nama']); ?></span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="profile.php">Profile</a></li>
@@ -313,20 +345,22 @@ if (isset($_GET['action']) && $_GET['action'] === 'addunit') {
         </div>
       </nav>
 
-<main class="dashboard-content">
+      <main class="dashboard-content">
         <div class="container-fluid px-3 px-lg-4 py-4">
           
           <div class="page-heading">
             <div class="page-heading-copy">
-              <span class="page-icon"><i class="bi bi-person-plus" aria-hidden="true"></i></span>
+              <span class="page-icon"><i class="bi bi-boxes" aria-hidden="true"></i></span>
               <div>
                 <p class="eyebrow mb-1">Management</p>
                 <h1 class="h3 mb-1">Raw Materials</h1>
               </div>
             </div>
-            <div class="heading-actions">
+            <div class="heading-actions d-flex gap-2">
+              <a class="btn btn-primary btn-sm" href="bahanbaku.php?action=viewunits">
+                <i class="bi bi-list-ul" aria-hidden="true"></i> View Units</a>
               <a class="btn btn-primary btn-sm" href="bahanbaku.php?action=addunit">
-                <i class="bi bi-person-plus" aria-hidden="true"></i> Add Unit</a>
+                <i class="bi bi-plus-circle" aria-hidden="true"></i> Add Unit</a>
             </div>
           </div>
 
@@ -339,173 +373,205 @@ if (isset($_GET['action']) && $_GET['action'] === 'addunit') {
 
           <?php if (!empty($msg)): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i> <?php echo $msg; ?>
+              <i class="bi bi-check-circle-fill me-2"></i> <?php echo $msg; ?>
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
           <?php endif; ?>
 
 
         <section class="row g-3">
-            <!-- INSERT RAW MATERIAL -->
             <div class="col-12 col-xl-4">
               <form class="panel needs-validation" novalidate method="POST">
-                <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-person-plus" aria-hidden="true"></i><span>Add Raw Materials</span></h2></div></div>
+                <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-box-seam" aria-hidden="true"></i><span>Add Raw Material</span></h2></div></div>
                 <div class="row g-3">
-                  <!-- Add_Raw Material - ID -->
                   <div class="col-md-6">
                     <label class="form-label" for="id">ID Bahan Baku</label>
                     <input class="form-control" id="id" type="text" required name="id">
-                    <div class="invalid-feedback">Raw Material ID is required.</div>
                   </div>
-
-                  <!-- Add_Raw Material - NAMA -->
                   <div class="col-md-6">
                     <label class="form-label" for="nama">Nama</label>
                     <input class="form-control" id="nama" type="text" required name="nama">
-                    <div class="invalid-feedback">Name is required.</div>
                   </div>
-                  <!-- Add_Raw Material - STOK -->
                   <div class="col-md-6">
                     <label class="form-label" for="stok">Stok</label>
                     <input class="form-control" id="stok" type="number" required name="stok">
-                    <div class="invalid-feedback">Stock is required.</div>
                   </div>
-
-                  <!-- Add_Raw Material - SATUAN -->
-                  <div class="col-md-6"><label class="form-label" for="satuan">Satuan</label>
+                  <div class="col-md-6">
+                    <label class="form-label" for="satuan">Satuan</label>
                     <select class="form-select" id="satuan" name="satuan" required>
                       <option value="">Choose Unit</option>
                       <?php foreach ($satuan_list as $sat): ?>
-                          <option value="<?php echo $sat['id']; ?>">
-                              <?php echo htmlspecialchars($sat['nama']); ?>
-                          </option>
+                          <option value="<?php echo $sat['id']; ?>"><?php echo htmlspecialchars($sat['nama']); ?></option>
                       <?php endforeach; ?>
                     </select>
-                    <div class="invalid-feedback">Choose a unit.</div>
                   </div>
                 </div>
                 
                 <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
-                  <button class="btn btn-primary" type="submit" name="create"><i class="bi bi-person-check" aria-hidden="true"></i> Create Raw Material</button>
+                  <button class="btn btn-primary" type="submit" name="create"><i class="bi bi-plus-square" aria-hidden="true"></i> Add Material</button>
                 </div>
               </form>
             </div>
 
-      <?php if($editmode): ?>
-      <!-- UPDATE RAW MATERIAL -->
-      <div class="col-12 col-xl-4">
-        <form class="panel needs-validation" novalidate method="POST">
-            <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-person-plus" aria-hidden="true"></i><span>Update Product</span></h2></div></div>
+            <?php if($editmode): ?>
+            <div class="col-12 col-xl-4">
+              <form class="panel needs-validation" novalidate method="POST">
+                <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-pencil-square" aria-hidden="true"></i><span>Update Material</span></h2></div></div>
                 <div class="row g-3">
-                  <!-- Update_Raw Material - ID -->
                   <div class="col-md-6">
                     <label class="form-label" for="id">ID Bahan Baku</label>
-                    <input class="form-control" id="id" type="text" required name="id" value="<?php echo $update_id ?>">
-                    <div class="invalid-feedback">Raw Material ID is required.</div>
+                    <input class="form-control" id="id" type="text" readonly name="id" value="<?php echo htmlspecialchars($update_id); ?>">
                   </div>
-
-                  <!-- Update_Raw Material - NAMA -->
                   <div class="col-md-6">
                     <label class="form-label" for="nama">Nama</label>
-                    <input class="form-control" id="nama" type="text" required name="nama" value="<?php echo $update_nama?>">
-                    <div class="invalid-feedback">Name is required.</div>
+                    <input class="form-control" id="nama" type="text" required name="nama" value="<?php echo htmlspecialchars($update_nama); ?>">
                   </div>
-
-                  <!-- Update_Raw Material - STOK -->
                   <div class="col-md-6">
                     <label class="form-label" for="stok">Stok</label>
-                    <input class="form-control" id="stok" type="number" required name="stok" value="<?php echo $update_stok ?>">
-                    <div class="invalid-feedback">Stock is required.</div>
+                    <input class="form-control" id="stok" type="number" required name="stok" value="<?php echo htmlspecialchars($update_stok); ?>">
                   </div>
-
-                  <!-- Update_Raw Material - SATUAN -->
                   <div class="col-md-6"><label class="form-label" for="satuan">Satuan</label>
                     <select class="form-select" id="satuan" name="satuan" required>
                     <?php foreach ($satuan_list as $sat): ?>
-                    <option
-                        value="<?php echo $sat['id']; ?>"
-                        <?php echo ($sat['id'] == $update_satId) ? 'selected' : ''; ?>
-                    >
+                    <option value="<?php echo $sat['id']; ?>" <?php echo ($sat['id'] == $update_satId) ? 'selected' : ''; ?>>
                         <?php echo htmlspecialchars($sat['nama']); ?>
                     </option>
                     <?php endforeach; ?>
                     </select>
-                    <div class="invalid-feedback">Choose a unit.</div>
                   </div>
                 </div>
                 <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
                   <a class="btn btn-outline-secondary" href="bahanbaku.php">Cancel</a>
-                  <button class="btn btn-primary" type="submit" name="update"><i class="bi bi-person-check" aria-hidden="true"></i> Update Raw Material</button>
+                  <button class="btn btn-primary" type="submit" name="update"><i class="bi bi-check-circle" aria-hidden="true"></i> Update Material</button>
                 </div>           
-            </form>
-          </div>
-          <?php endif;?>
+              </form>
+            </div>
+            <?php endif;?>
 
-          <!-- MODE ADD UNIT/SATUAN -->
-          <?php if ($unitmode): ?>
-      <div class="col-12 col-xl-4">
-        <form class="panel needs-validation" novalidate method="POST">
-            <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-person-plus" aria-hidden="true"></i><span>Add Unit</span></h2></div></div>
+            <?php if ($unitmode): ?>
+            <div class="col-12 col-xl-4">
+              <form class="panel needs-validation" novalidate method="POST">
+                <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-plus-circle" aria-hidden="true"></i><span>Add Unit</span></h2></div></div>
                 <div class="row g-3">
-                  <!-- Update_Raw Material - NAMA -->
-                  <div class="col-md-6">
+                  <div class="col-md-12">
                     <label class="form-label" for="nama_unit">Nama Unit</label>
                     <input class="form-control" id="nama_unit" type="text" required name="nama_unit">
-                    <div class="invalid-feedback">Name is required.</div>
                   </div>
                 </div>
                 <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
                   <a class="btn btn-outline-secondary" href="bahanbaku.php">Cancel</a>
-                  <button class="btn btn-primary" type="submit" name="add_unit_submit"><i class="bi bi-person-check" aria-hidden="true"></i> Add Unit </button>
+                  <button class="btn btn-primary" type="submit" name="add_unit_submit"><i class="bi bi-check" aria-hidden="true"></i> Save Unit </button>
                 </div>           
-            </form>
-          </div>
-          <?php endif; ?>
-</section>
+              </form>
+            </div>
+            <?php endif; ?>
 
-      <hr class="my-5">
+            <?php if ($editunitmode): ?>
+            <div class="col-12 col-xl-4">
+              <form class="panel needs-validation" novalidate method="POST">
+                <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-pencil-square" aria-hidden="true"></i><span>Update Unit</span></h2></div></div>
+                <div class="row g-3">
+                  <div class="col-md-12">
+                    <label class="form-label" for="nama_unit_update">Nama Unit</label>
+                    <input type="hidden" name="id_unit" value="<?php echo htmlspecialchars($update_unit_id); ?>">
+                    <input class="form-control" id="nama_unit_update" type="text" required name="nama_unit" value="<?php echo htmlspecialchars($update_unit_nama); ?>">
+                  </div>
+                </div>
+                <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+                  <a class="btn btn-outline-secondary" href="bahanbaku.php?action=viewunits">Cancel</a>
+                  <button class="btn btn-primary" type="submit" name="update_unit_submit"><i class="bi bi-check" aria-hidden="true"></i> Update Unit </button>
+                </div>           
+              </form>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($viewunitmode && !$editunitmode): ?>
+            <div class="col-12 col-xl-4">
+              <div class="panel">
+                <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-card-list" aria-hidden="true"></i><span>Daftar Unit/Satuan</span></h2></div></div>
+                
+                <div class="table-responsive">
+                  <table class="table align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th scope="col" style="padding-left: 1.5rem; width:20%;">ID</th>
+                        <th scope="col">Nama Unit</th>
+                        <th scope="col" class="text-end" style="padding-right: 1.5rem;">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <?php if (count($satuan_list) > 0): ?>
+                          <?php foreach ($satuan_list as $sat): ?>
+                          <tr>
+                            <td style="padding-left: 1.5rem;"><?php echo htmlspecialchars($sat['id']); ?></td>
+                            <td><?php echo htmlspecialchars($sat['nama']); ?></td>
+                            <td class="text-end" style="padding-right: 1.5rem;">
+                                <a class="btn btn-light btn-sm" href="bahanbaku.php?action=updateunit&id=<?php echo urlencode($sat['id']); ?>"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-light btn-sm text-danger" href="bahanbaku.php?action=deleteunit&id=<?php echo urlencode($sat['id']); ?>" onclick="return confirm('Yakin ingin menghapus unit <?php echo htmlspecialchars($sat['nama']); ?>? (Pastikan unit tidak terpakai)');"><i class="bi bi-trash"></i></a>
+                            </td>
+                          </tr>
+                          <?php endforeach; ?>
+                      <?php else: ?>
+                          <tr>
+                            <td colspan="3" class="text-center py-3">Belum ada unit terdaftar.</td>
+                          </tr>
+                      <?php endif; ?>
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div class="px-3 pb-3">
+                  <div class="d-flex flex-wrap justify-content-end gap-2 mt-4 border-top pt-3">
+                    <a class="btn btn-outline-secondary" href="bahanbaku.php">Tutup</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <?php endif; ?>
+        </section>
+
+        <hr class="my-5">
+
         <section class="panel mt-3">
             <div class="panel-header">
               <div>
                 <h2 class="h5 mb-1 section-title"><i class="bi bi-table" aria-hidden="true"></i><span>Raw Materials List</span></h2>
               </div>
               <div class="d-flex flex-wrap gap-2">
-                <input class="form-control form-control-sm table-search" type="search" placeholder="Search Raw Material" data-table-search="usersTable" aria-label="Search users">
+                <input class="form-control form-control-sm table-search" type="search" placeholder="Search Material..." data-table-search="usersTable">
               </div>
             </div>
             <div class="table-responsive">
               <table class="table align-middle mb-0" id="usersTable" data-searchable-table>
                 <thead>
                   <tr>
-                    <th scope="col">ID</th>
+                    <th scope="col" style="padding-left: 1.5rem;">ID</th>
                     <th scope="col">Nama</th>
                     <th scope="col">Satuan</th>
                     <th scope="col">Stok</th>
-                    <th scope="col" class="text-end">Action</th>
+                    <th scope="col" class="text-end" style="padding-right: 1.5rem;">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   <?php foreach ($dataku as $item): ?>
                   <tr>
-                    <td><?php echo $item[0] ?></td>
-                    <td><?php echo $item[1] ?></td>
-                    <td><?php echo $item[2] ?></td>
-                    <td><?php echo $item[3] ?></td>
-                    <td class="text-end">
-                      <a class="btn btn-light btn-sm" href="user-details.html?">View</a>
-                      <a class="btn btn-light btn-sm"href="bahanbaku.php?action=update&id=<?php echo urlencode($item[0]);?>">Update</a>
-                      <a class="btn btn-light btn-sm" href="bahanbaku.php?action=delete&id=<?php echo urlencode($item[0]);?>" onclick="return confirm('Yakin ingin menghapus bahan baku <?php echo $item[1]; ?> ?');">Delete</a>
+                    <td style="padding-left: 1.5rem;"><?php echo htmlspecialchars($item[0]); ?></td>
+                    <td><?php echo htmlspecialchars($item[1]); ?></td>
+                    <td><?php echo htmlspecialchars($item[2]); ?></td>
+                    <td><?php echo htmlspecialchars($item[3]); ?></td>
+                    <td class="text-end" style="padding-right: 1.5rem;">
+                      <a class="btn btn-light btn-sm" href="bahanbaku.php?action=update&id=<?php echo urlencode($item[0]);?>">Update</a>
+                      <a class="btn btn-light btn-sm" href="bahanbaku.php?action=delete&id=<?php echo urlencode($item[0]);?>" onclick="return confirm('Yakin ingin menghapus bahan baku <?php echo htmlspecialchars($item[1]); ?> ?');">Delete</a>
                     </td>
                   </tr>
                   <?php endforeach ?>
                 </tbody>
               </table>
             </div>
-            <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mt-3">
-              <p class="text-muted small mb-0">Showing 1 to 5 of 124 users</p>
-              <nav aria-label="Users pagination"><ul class="pagination pagination-sm mb-0"><li class="page-item disabled"><a class="page-link" href="#">Previous</a></li><li class="page-item active"><a class="page-link" href="#">1</a></li><li class="page-item"><a class="page-link" href="#">2</a></li><li class="page-item"><a class="page-link" href="#">Next</a></li></ul></nav>
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mt-3 p-3">
+              <p class="text-muted small mb-0">Showing raw materials list</p>
             </div>
-          </section>
+        </section>
           
         </div>
       </main> 

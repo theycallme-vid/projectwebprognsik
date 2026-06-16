@@ -414,7 +414,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'addunit') {
                     <td class="text-end">
                       <a class="btn btn-light btn-sm" href="user-details.html?">View</a>
                       <a class="btn btn-light btn-sm"href="bahanbaku.php?action=update&id=<?php echo urlencode($item[0]);?>">Update</a>
-                      <a class="btn btn-light btn-sm" href="bahanbaku.php?action=delete&id=<?php echo urlencode($item[0]);?>" onclick="return confirm('Yakin ingin menghapus bahan baku <?php echo $item[1]; ?> ?');">Delete</a>
+                      <a class="btn btn-light btn-sm" href="bahanbaku.php?action=delete&id=<?php echo urlencode($item[0]);?>" onclick="return confirm('Yakin ingin menghapus bahan baku <?php echo $item[1]; ?> ?');"><i class="bi bi-trash"></i> Delete</a>
                     </td>
                   </tr>
                   <?php endforeach ?>

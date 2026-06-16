@@ -80,6 +80,15 @@ $nama = $_SESSION['nama'];
           <span class="nav-icon"><i class="bi bi-table" aria-hidden="true"></i></span>
           <span class="nav-text">Operating Expenses</span>
         </a>
+        <a class="nav-link" href="pengajuanStok.php">
+          <span class="nav-icon"><i class="bi bi-table"></i></span>
+          <span class="nav-text">Approval PR</span>
+        </a>
+        <a class="nav-link" href="purchase.php">
+          <span class="nav-icon"><i class="bi bi-table"></i></span>
+          <span class="nav-text">Purchase Order</span>
+        </a>
+
       </nav>
     </aside>
 

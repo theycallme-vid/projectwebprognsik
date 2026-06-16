@@ -71,7 +71,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['kode']
         $sql2 = "DELETE FROM tProduk WHERE kode = :kode";
         $stmt2 = $koneksi->prepare($sql2);
         $stmt2->execute(['kode' => $hapus_kode]);
-        header("Location: product.php?status=deleted");
+        header("Location: purchase.php?status=deleted");
         exit;
     } catch(PDOException $e) {
         $error_msg = "Gagal menghapus data: " . $e->getMessage();
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $koneksi->commit(); 
-            header("Location: product.php?status=created_all");
+            header("Location: purchase.php?status=created_all");
             exit; 
         } catch (PDOException $e){
             $koneksi->rollBack();
@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'kategori' => $kategori,
                 'kode' => $kode
             ]);
-            header("Location: product.php?status=updated");
+            header("Location: purchase.php?status=updated");
             exit;
         } catch (PDOException $e){
             $error_msg = "Gagal memperbarui produk: " . $e->getMessage();
@@ -193,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             $koneksi->commit(); 
-            header("Location: product.php?status=recipe_updated"); 
+            header("Location: purchase.php?status=recipe_updated"); 
             exit;
         } catch(PDOException $e) {
             $koneksi->rollBack(); 
@@ -205,12 +205,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ==========================================================
 // MENGAMBIL DATA UNTUK DROPDOWN (JOIN tBahanbaku & tSatuan)
 // ==========================================================
-$kategori_list = [];
+$supplier_list = [];
 $produk_list = [];
 $bahanbaku_list = [];
 try {
-    $stmt_kategori = $koneksi->query("SELECT id, nama FROM tKategori ORDER BY nama ASC");
-    $kategori_list = $stmt_kategori->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_supplier = $koneksi->query("SELECT id, nama FROM tSupplier ORDER BY id ASC");
+    $supplier_list = $stmt_supplier->fetchAll(PDO::FETCH_ASSOC);
 
     $stmt_prod = $koneksi->query("SELECT kode, nama FROM tProduk ORDER BY nama ASC");
     $produk_list = $stmt_prod->fetchAll(PDO::FETCH_ASSOC);
@@ -318,7 +318,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
         <a class="nav-link" href="Dashboard.php"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span><span class="nav-text">Dashboard</span></a>
         <a class="nav-link" href="users.php"><span class="nav-icon"><i class="bi bi-people"></i></span><span class="nav-text">Users</span></a>
         <a class="nav-link" href="category.php"><span class="nav-icon"><i class="bi bi-person-plus"></i></span><span class="nav-text">Category</span></a>
-        <a class="nav-link active" href="product.php" aria-current="page"><span class="nav-icon"><i class="bi bi-people"></i></span><span class="nav-text">Products</span></a>
+        <a class="nav-link" href="purchase.php" aria-current="page"><span class="nav-icon"><i class="bi bi-people"></i></span><span class="nav-text">Products</span></a>
         <a class="nav-link" href="bahanbaku.php" aria-current="page"><span class="nav-icon"><i class="bi bi-people"></i></span><span class="nav-text">Raw Materials</span></a>
         <a class="nav-link" href="supplier.php"><span class="nav-icon"><i class="bi bi-person-badge"></i></span><span class="nav-text">Suppliers</span></a>
         <a class="nav-link" href="operasional.php"><span class="nav-icon"><i class="bi bi-table"></i></span><span class="nav-text">Operating Expenses</span></a>
@@ -326,7 +326,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
           <span class="nav-icon"><i class="bi bi-table"></i></span>
           <span class="nav-text">Approval PR</span>
         </a>
-        <a class="nav-link" href="purchase.php">
+        <a class="nav-link active" href="purchase.php">
           <span class="nav-icon"><i class="bi bi-table"></i></span>
           <span class="nav-text">Purchase Order</span>
         </a>
@@ -386,7 +386,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
               <span class="page-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
               <div>
                 <p class="eyebrow mb-1">Management</p>
-                <h1 class="h3 mb-1">Product & Recipe</h1>
+                <h1 class="h3 mb-1">Purchase Order</h1>
               </div>
             </div>
           </div>
@@ -411,40 +411,33 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
             <!-- FORM GABUNGAN: ADD PRODUCT & RECIPE -->
             <div class="col-12 col-xl-8">
               <form class="panel needs-validation" novalidate method="POST" id="formAddProductRecipe">
-                <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-plus-square" aria-hidden="true"></i><span>Add Product & Recipe</span></h2></div></div>
+                <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-plus-square" aria-hidden="true"></i><span>Add Purchase Order</span></h2></div></div>
                 
                 <div class="row g-4 px-2">
                   <div class="col-md-5 border-end">
-                    <h6 class="mb-3 text-primary"><i class="bi bi-box me-1"></i> Informasi Produk</h6>
+                    <h6 class="mb-3 text-primary"><i class="bi bi-box me-1"></i> Informasi Purchase Order</h6>
                     <div class="row g-3">
-                      <div class="col-12">
-                        <label class="form-label" for="productname">Nama Produk</label>
-                        <input class="form-control" id="productname" type="text" required name="productname">
-                      </div>
-                      <div class="col-12">
-                        <label class="form-label" for="harga">Harga Jual (Rp)</label>
-                        <input class="form-control" id="harga" type="number" required name="harga">
-                      </div>
-                      <div class="col-12">
-                        <label class="form-label" for="kategori">Kategori Produk</label>
+                    <div class="col-md-12">
+                        <label class="form-label" for="tanggal">Date</label>
+                        <input class="form-control" id="tanggal" type="date" required name="tanggal">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="kategori">Supplier</label>
                         <select class="form-select" id="kategori" name="kategori" required>
-                          <option value="">Pilih Kategori</option>
-                          <?php foreach ($kategori_list as $kat): ?>
-                              <option value="<?php echo htmlspecialchars($kat['id']); ?>"><?php echo htmlspecialchars($kat['nama']); ?></option>
+                          <option value="">Pilih Supplier</option>
+                          <?php foreach ($supplier_list as $supplier): ?>
+                              <option value="<?php echo htmlspecialchars($supplier['id']); ?>"><?php echo htmlspecialchars($supplier['nama']); ?></option>
                           <?php endforeach; ?>
                         </select>
-                      </div>
-                      <div class="col-12 mt-2">
-                          <small class="text-muted fst-italic">*Kode produk akan dibuat otomatis oleh sistem (contoh: P001).</small>
                       </div>
                     </div>
                   </div>
 
                   <div class="col-md-7">
-                    <h6 class="mb-3 text-primary"><i class="bi bi-journal-text me-1"></i> Resep (Bahan Baku)</h6>
+                    <h6 class="mb-3 text-primary"><i class="bi bi-journal-text me-1"></i> Detail Purchase Order</h6>
                     <div class="row g-3">
                       <div class="col-12">
-                        <label class="form-label">Rincian Komposisi</label>
+                        <label class="form-label">Rincian Pesanan</label>
                         <div id="recipe-ingredients-container">
                           
                           <div class="row g-2 mb-2 ingredient-row align-items-center">
@@ -516,7 +509,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
                     </div>
                   </div>
                   <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
-                    <a class="btn btn-outline-secondary" href="product.php">Cancel</a>
+                    <a class="btn btn-outline-secondary" href="purchase.php">Cancel</a>
                     <button class="btn btn-primary" type="submit" name="update"><i class="bi bi-check-circle" aria-hidden="true"></i> Update Product</button>
                   </div>    
               </form>
@@ -600,7 +593,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
                 </div>
 
                 <div class="d-flex flex-wrap justify-content-end gap-2 mt-4 pt-3 border-top">
-                  <a class="btn btn-outline-secondary" href="product.php">Tutup</a>
+                  <a class="btn btn-outline-secondary" href="purchase.php">Tutup</a>
                   <button class="btn btn-success" type="submit" name="update_recipe"><i class="bi bi-check-circle" aria-hidden="true"></i> Simpan Perubahan Resep</button>
                 </div>
               </form>
@@ -638,12 +631,12 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
                     <td>Rp <?php echo number_format($item[2], 0, ',', '.'); ?></td>
                     <td><?php echo htmlspecialchars($item[3]) ?></td>
                     <td class="text-end">
-                      <a class="btn btn-primary btn-sm" href="product.php?action=viewrecipe&kode=<?php echo urlencode($item[0]);?>"><i class="bi bi-journal-text me-1"></i> View Recipe</a>
-                      <a class="btn btn-light btn-sm" href="product.php?action=update&kode=<?php echo urlencode($item[0]);?>">Update</a>
+                      <a class="btn btn-primary btn-sm" href="purchase.php?action=viewrecipe&kode=<?php echo urlencode($item[0]);?>"><i class="bi bi-journal-text me-1"></i> View Recipe</a>
+                      <a class="btn btn-light btn-sm" href="purchase.php?action=update&kode=<?php echo urlencode($item[0]);?>">Update</a>
                       <button type="button" class="btn btn-light btn-sm" 
                               data-bs-toggle="modal" 
                               data-bs-target="#deleteConfirmModal" 
-                              data-href="product.php?action=delete&kode=<?php echo urlencode($item[0]);?>"  
+                              data-href="purchase.php?action=delete&kode=<?php echo urlencode($item[0]);?>"  
                               data-name="<?php echo htmlspecialchars($item[1]); ?>">
                               <i class="bi bi-trash"></i> Delete
                       </button>

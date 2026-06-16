@@ -183,6 +183,15 @@ $msg= '';
           <span class="nav-icon"><i class="bi bi-table" aria-hidden="true"></i></span>
           <span class="nav-text">Operating Expenses</span>
         </a>
+        <a class="nav-link" href="pengajuanStok.php">
+          <span class="nav-icon"><i class="bi bi-table"></i></span>
+          <span class="nav-text">Approval PR</span>
+        </a>
+        <a class="nav-link" href="purchase.php">
+          <span class="nav-icon"><i class="bi bi-table"></i></span>
+          <span class="nav-text">Purchase Order</span>
+        </a>
+
       </nav>
     </aside>
     
@@ -324,9 +333,14 @@ $msg= '';
                     <td><?php echo $item[0] ?></td>
                     <td><?php echo $item[1] ?></td>
                     <td class="text-end">
-                      <a class="btn btn-light btn-sm" href="user-details.html?">View</a>
                       <a class="btn btn-light btn-sm" href="category.php?action=update&id=<?php echo urlencode($item[0]);?>">Update</a>
-                      <a class="btn btn-light btn-sm" href="category.php?action=delete&id=<?php echo urlencode($item[0]);?>" onclick="return confirm('Yakin ingin menghapus user <?php echo $item[1]; ?> ?');">Delete</a>
+                      <button type="button" class="btn btn-light btn-sm" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#deleteConfirmModal" 
+                              data-href="category.php?action=delete&id=<?php echo urlencode($item[0]);?>"  
+                              data-name="<?php echo htmlspecialchars($item[1]); ?>">
+                              <i class="bi bi-trash"></i> Delete
+                      </button>
                     </td>
                   </tr>
                   <?php endforeach ?>
@@ -344,7 +358,46 @@ $msg= '';
     </div>
   </div>
 
+  <!-- MODAL DELETE CONFIRMATION (ADAPTIF LIGHT & NIGHT MODE) -->
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <!-- Catatan: Menghilangkan class bg-* statis agar modal otomatis mengikuti warna panel bawaan template -->
+      <div class="modal-content text-center p-4 shadow-lg border-0" style="background: var(--bs-body-bg, inherit);">
+        <div class="modal-body">
+          <i class="bi bi-exclamation-circle text-danger mb-3 d-block" style="font-size: 3rem;"></i>
+          <!-- PERBAIKAN: Menggunakan class text-body agar warna tulisan dinamis mengikuti theme -->
+          <h5 class="mb-3 text-body fw-bold">Konfirmasi Hapus</h5>
+          <p class="text-muted mb-4">Apakah anda yakin untuk menghapus Kategori <strong id="deleteTargetName" class="text-body"></strong>?</p>
+          <div class="d-flex justify-content-center gap-2">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+            <a href="#" id="confirmDeleteBtn" class="btn btn-danger px-4">Ya, Hapus</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="../../../project/assets/js/bootstrap.bundle.min.js"></script>
   <script src="../../../project/assets/js/main.js"></script>
+
+  <!-- JAVASCRIPT POP UP DELETE -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var deleteConfirmModal = document.getElementById('deleteConfirmModal');
+        if (deleteConfirmModal) {
+            deleteConfirmModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget; 
+                var deleteUrl = button.getAttribute('data-href');
+                var targetName = button.getAttribute('data-name');
+                
+                var modalTargetName = deleteConfirmModal.querySelector('#deleteTargetName');
+                var confirmDeleteBtn = deleteConfirmModal.querySelector('#confirmDeleteBtn');
+                
+                modalTargetName.textContent = targetName;
+                confirmDeleteBtn.setAttribute('href', deleteUrl);
+            });
+        }
+    });
+  </script>
 </body>
 </html>

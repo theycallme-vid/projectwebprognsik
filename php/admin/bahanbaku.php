@@ -24,25 +24,18 @@ $nama = $_SESSION['nama'];
 $error_msg = '';
 $msg= '';
 
-// Tangkap Notifikasi
+// Set Notifikasi (akan menampilkan masing2 msg sesuai tiap status nya)
 if (isset($_GET['status'])) {
     if ($_GET['status'] == 'deleted') $msg = "Bahan baku berhasil dihapus!";
-    elseif ($_GET['status'] == 'created') $msg = "Bahan baku baru berhasil ditambahkan!";
+    elseif ($_GET['status'] == 'created') $msg = "Bahan baku baru berhasil ditambahkan secara otomatis!";
     elseif ($_GET['status'] == 'updated') $msg = "Data bahan baku berhasil diperbarui!";
     elseif ($_GET['status'] == 'unit_created') $msg = "Unit/Satuan baru berhasil ditambahkan!";
     elseif ($_GET['status'] == 'unit_updated') $msg = "Nama Unit/Satuan berhasil diperbarui!";
     elseif ($_GET['status'] == 'unit_deleted') $msg = "Unit/Satuan berhasil dihapus!";
 }
 
-try {
-    $koneksi = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $koneksi->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} 
-catch(PDOException $e) {
-    $error_msg = "Koneksi gagal: " . $e->getMessage();
-}
 
-// TAMPILKAN DATA DI LIST BAHAN BAKU
+// Ambil data di tBahanBaku untuk dimasukkan kedalam Raw Material List
 try{
     $dataku = array();
     $sql = "SELECT b.id, b.nama, b.stok, s.nama as nama_satuan FROM tBahanbaku b INNER JOIN tSatuan s ON b.tSatuan_id = s.id";
@@ -63,7 +56,7 @@ catch(PDOException $e){
     $error_msg = 'Error: '.$e->getMessage();
 }
 
-// DELETE DATA BAHAN BAKU
+// DELETE DATA BAHAN BAKU (Digunakan di Button Delete Raw Material Lists)
 if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
     $hapus_id = $_GET['id'];
     try {
@@ -77,7 +70,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
     }
 }
 
-// DELETE DATA UNIT / SATUAN
+// DELETE DATA UNIT / SATUAN (Digunakan untuk bagian View Units)
 if (isset($_GET['action']) && $_GET['action'] == 'deleteunit' && isset($_GET['id'])) {
     $hapus_id = $_GET['id'];
     try {
@@ -91,43 +84,46 @@ if (isset($_GET['action']) && $_GET['action'] == 'deleteunit' && isset($_GET['id
     }
 }
 
-// ==========================================
 // INSERT & UPDATE DATA (POST)
-// ==========================================
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // --- JIKA TOMBOL CREATE BAHAN BAKU DIKLIK ---
     if(isset($_POST['create'])){
-        $id = trim($_POST['id']);
         $nama_bahan = trim($_POST['nama']);
         $stok = trim($_POST['stok']); 
         $satuan = $_POST['satuan'];
         
-        $sqlcek = "SELECT COUNT(*) AS jmlh FROM tBahanbaku WHERE id = :id";
-        $stmt_cek = $koneksi->prepare($sqlcek);
-        $stmt_cek->execute(['id' => $id]);
-        $baris = $stmt_cek->fetch(PDO::FETCH_ASSOC);
+        try {
+            // GENERASI ID OTOMATIS (Format: B001, B002, dst.)
+            $sqlCek = "SELECT id FROM tBahanbaku WHERE id LIKE 'B%' ORDER BY CAST(SUBSTRING(id, 2) AS UNSIGNED) DESC LIMIT 1";
+            $stmtCek = $koneksi->query($sqlCek);
+            $lastData = $stmtCek->fetch(PDO::FETCH_ASSOC);
 
-        if ($baris['jmlh'] > 0) {   
-            $error_msg = "ID Bahan Baku sudah digunakan. Silakan gunakan ID lain!";
-        } 
-        else {
-            try {
-                $sql = "INSERT INTO tBahanbaku (id, nama, stok, tSatuan_id) 
-                        VALUES (:id, :nama ,:stok, :satuan)";
-                $stmt_insert = $koneksi->prepare($sql);
-                $stmt_insert->execute([
-                    'id' => $id,
-                    'nama' => $nama_bahan,
-                    'stok' => $stok,
-                    'satuan' => $satuan
-                ]);
-                header("Location: bahanbaku.php?status=created");
-                exit; 
+            if ($lastData) {
+                $lastUrutan = (int) substr($lastData['id'], 1);
+                $nextUrutan = $lastUrutan + 1;
+            } else {
+                $nextUrutan = 1; 
             }
-            catch (PDOException $e){
-                $error_msg = "Gagal menambah bahan baku: " . $e->getMessage();
-            }
+            
+            $id_baru = 'B' . str_pad($nextUrutan, 3, '0', STR_PAD_LEFT);
+
+            // Jalankan Query Insert
+            $sql = "INSERT INTO tBahanbaku (id, nama, stok, tSatuan_id) 
+                    VALUES (:id, :nama ,:stok, :satuan)";
+            $stmt_insert = $koneksi->prepare($sql);
+            $stmt_insert->execute([
+                'id' => $id_baru,
+                'nama' => $nama_bahan,
+                'stok' => $stok,
+                'satuan' => $satuan
+            ]);
+            header("Location: bahanbaku.php?status=created");
+            exit; 
+        }
+        catch (PDOException $e){
+            $error_msg = "Gagal menambah bahan baku: " . $e->getMessage();
         }
     }
 
@@ -301,6 +297,11 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
         <a class="nav-link active" href="bahanbaku.php" aria-current="page"><span class="nav-icon"><i class="bi bi-people"></i></span><span class="nav-text">Raw Materials</span></a>
         <a class="nav-link" href="supplier.php"><span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span><span class="nav-text">Suppliers</span></a>
         <a class="nav-link" href="operasional.php"><span class="nav-icon"><i class="bi bi-table"></i></span><span class="nav-text">Operating Expenses</span></a>
+        <a class="nav-link" href="pengajuanStok.php"><span class="nav-icon"><i class="bi bi-table"></i></span><span class="nav-text">Approval PR</span></a>
+        <a class="nav-link" href="purchase.php">
+          <span class="nav-icon"><i class="bi bi-table"></i></span>
+          <span class="nav-text">Purchase Order</span>
+        </a>
       </nav>
     </aside>
     
@@ -382,18 +383,14 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
         <section class="row g-3">
             <div class="col-12 col-xl-4">
               <form class="panel needs-validation" novalidate method="POST">
-                <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-box-seam" aria-hidden="true"></i><span>Add Raw Material</span></h2></div></div>
+                <div class="panel-header"><div><h2 class="h5 mb-1 section-title"><i class="bi bi-plus-square" aria-hidden="true"></i><span>Add Raw Material</span></h2></div></div>
                 <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label" for="id">ID Bahan Baku</label>
-                    <input class="form-control" id="id" type="text" required name="id">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label" for="nama">Nama</label>
+                  <div class="col-md-12">
+                    <label class="form-label" for="nama">Nama Bahan Baku</label>
                     <input class="form-control" id="nama" type="text" required name="nama">
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label" for="stok">Stok</label>
+                    <label class="form-label" for="stok">Stok Awal</label>
                     <input class="form-control" id="stok" type="number" required name="stok">
                   </div>
                   <div class="col-md-6">
@@ -405,10 +402,13 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
                       <?php endforeach; ?>
                     </select>
                   </div>
+                  <div class="col-12 mt-2">
+                    <small class="text-muted fst-italic">*ID Bahan Baku akan dibuat otomatis oleh sistem (contoh: B001).</small>
+                  </div>
                 </div>
                 
                 <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
-                  <button class="btn btn-primary" type="submit" name="create"><i class="bi bi-plus-square" aria-hidden="true"></i> Add Material</button>
+                  <button class="btn btn-primary" type="submit" name="create"><i class="bi bi-save" aria-hidden="true"></i> Add Material</button>
                 </div>
               </form>
             </div>
@@ -559,9 +559,15 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
                     <td><?php echo htmlspecialchars($item[1]); ?></td>
                     <td><?php echo htmlspecialchars($item[2]); ?></td>
                     <td><?php echo htmlspecialchars($item[3]); ?></td>
-                    <td class="text-end" style="padding-right: 1.5rem;">
+                    <td class="text-end">
                       <a class="btn btn-light btn-sm" href="bahanbaku.php?action=update&id=<?php echo urlencode($item[0]);?>">Update</a>
-                      <a class="btn btn-light btn-sm" href="bahanbaku.php?action=delete&id=<?php echo urlencode($item[0]);?>" onclick="return confirm('Yakin ingin menghapus bahan baku <?php echo htmlspecialchars($item[1]); ?> ?');">Delete</a>
+                      <button type="button" class="btn btn-light btn-sm" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#deleteConfirmModal" 
+                              data-href="bahanbaku.php?action=delete&id=<?php echo urlencode($item[0]);?>"  
+                              data-name="<?php echo htmlspecialchars($item[1]); ?>">
+                              <i class="bi bi-trash"></i> Delete
+                      </button>
                     </td>
                   </tr>
                   <?php endforeach ?>
@@ -578,7 +584,42 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel') {
     </div>
   </div>
 
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content text-center p-4 shadow-lg border-0" style="background: var(--bs-body-bg, inherit);">
+        <div class="modal-body">
+          <i class="bi bi-exclamation-circle text-danger mb-3 d-block" style="font-size: 3rem;"></i>
+          <h5 class="mb-3 text-body fw-bold">Konfirmasi Hapus</h5>
+          <p class="text-muted mb-4">Apakah anda yakin untuk menghapus Bahan Baku <strong id="deleteTargetName" class="text-body"></strong>?</p>
+          <div class="d-flex justify-content-center gap-2">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+            <a href="#" id="confirmDeleteBtn" class="btn btn-danger px-4">Ya, Hapus</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="../../../project/assets/js/bootstrap.bundle.min.js"></script>
   <script src="../../../project/assets/js/main.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var deleteConfirmModal = document.getElementById('deleteConfirmModal');
+        if (deleteConfirmModal) {
+            deleteConfirmModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget; 
+                var deleteUrl = button.getAttribute('data-href');
+                var targetName = button.getAttribute('data-name');
+                
+                var modalTargetName = deleteConfirmModal.querySelector('#deleteTargetName');
+                var confirmDeleteBtn = deleteConfirmModal.querySelector('#confirmDeleteBtn');
+                
+                modalTargetName.textContent = targetName;
+                confirmDeleteBtn.setAttribute('href', deleteUrl);
+            });
+        }
+    });
+  </script>
 </body>
 </html>

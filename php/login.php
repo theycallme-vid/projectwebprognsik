@@ -29,10 +29,11 @@
           $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
           if ($user) {
-              $_SESSION['username'] = $user['username'];
-              $_SESSION['tRole_id'] = $user['tRoles_id'];
-              $_SESSION['nama'] = $user['nama'];
-              $_SESSION['is_auth']  = true;
+            $_SESSION['id'] = $user['id'];  
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['tRole_id'] = $user['tRoles_id'];
+            $_SESSION['nama'] = $user['nama'];
+            $_SESSION['is_auth']  = true;
 
               if ($user['tRoles_id'] == 1 ){
                   header("Location: admin/Dashboard.php");
